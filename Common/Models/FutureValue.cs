@@ -20,7 +20,7 @@ namespace Common.Models
             get { return principal; } 
             set { principal = value; Calculate(); }  
         }
-        private decimal interestRate = 0.01M;
+        private decimal interestRate = 1.0M;
         [Required]
         [Range(typeof(decimal), "0.01", "100.00", ErrorMessage = "Please enter a percentage value (0.01% - 100%)")]
 
