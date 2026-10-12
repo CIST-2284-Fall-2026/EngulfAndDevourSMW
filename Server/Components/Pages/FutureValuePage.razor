@@ -4,8 +4,8 @@
 
 <PageTitle>Future Value Calculator</PageTitle>
 
-<h1>Future Value Calculator</h1>
-
+<h1 class="text-center">Future Value Calculator</h1>
+<!-- This is the form for calculating future value. It uses the FutureValue class as a model and calls HandleValidSubmit() when Submit is clicked and all validation is passed. Steps for dollar value inputs are 0.01. Validation prevents negative and zero values (not useful when calculating future value). Once data has been submitted, HandleValidSubmit() changes the contents of the message variable to show results. -->
 <EditForm FormName="FutureValueForm" Model="futureValue" OnValidSubmit="HandleValidSubmit">
     <DataAnnotationsValidator />
     <div class="mb-3">
@@ -31,12 +31,14 @@
     <button type="submit" class="btn btn-primary">Submit</button>
 </EditForm>
 
-<p>@message</p>
+<p class="text-center">@message</p>
 
 @code {
+    // Future Value object to hold data and do calculations
     private FutureValue futureValue = new FutureValue();
-
+    // Message for the user, changes when form is submitted
     private string message = "Please enter the relevant values in the fields above and click submit.";
+    // This method is called when the user submits a valid form. It formats the user inputs and the resulting future value into a string
     private void HandleValidSubmit()
     {
         message = $"Principal: ${futureValue.Principal:N2}, Interest Rate: {futureValue.InterestRate}%, Number of Years: {futureValue.Years}, Compounds Per Year: {futureValue.CompoundsPerYear} Future Value: ${futureValue.FutureVal:N2}";
