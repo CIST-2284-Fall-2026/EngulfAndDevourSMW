@@ -292,6 +292,17 @@ ServiceFabricBackup/
 *.ldf
 *.ndf
 
+# SQLite files
+*.db
+*.db-wal
+*.db-shm
+
+# secret setting files
+*.secrets.json
+
+# environment variable files
+*.env
+
 # Business Intelligence projects
 *.rdl.data
 *.bim.layout
