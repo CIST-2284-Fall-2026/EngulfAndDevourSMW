@@ -2,9 +2,9 @@
 # Visual Studio Version 16
 VisualStudioVersion = 16.0.0.0
 MinimumVisualStudioVersion = 16.0.0.0
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Program2SMW", "Program2SMW\Program2SMW.csproj", "{D970A700-F0EB-48C5-9542-7A2D32F7E1E1}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Program2SMW", "Server\Server.csproj", "{D970A700-F0EB-48C5-9542-7A2D32F7E1E1}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Program2SMW.Client", "Program2SMW.Client\Program2SMW.Client.csproj", "{4A863759-CD52-46B8-BEBC-4C1240C8F584}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Client", "Client\Client.csproj", "{4A863759-CD52-46B8-BEBC-4C1240C8F584}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
