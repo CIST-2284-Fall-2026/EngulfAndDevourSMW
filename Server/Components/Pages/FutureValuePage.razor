@@ -1,5 +1,39 @@
 @page "/future-value"
 
+@rendermode InteractiveServer
+
 <h1>Future Value Calculator</h1>
 
-<p>This is the future value calculator.</p>
+<EditForm FormName="FutureValueForm" Model="futureValue" OnValidSubmit="HandleValidSubmit">
+    <DataAnnotationsValidator />"
+    <ValidationSummary />
+    <div class="mb-3">
+        <label class="form-label" for="Principal">Principal</label>
+        <InputNumber class="form-control" step="0.01" id="principle" @bind-value="futureValue.Principal" />
+    </div>
+    <div class="mb-3">
+        <label class="form-label" for="interestRate">Annual Interest Rate (Percent)</label>
+        <InputNumber class="form-control" step="0.01" id="interestRate" @bind-value="futureValue.InterestRate" />
+    </div>
+    <div class="mb-3">
+        <label class="form-label" for="years">Number of Years</label>
+        <InputNumber class="form-control" step="1" id="years" @bind-value="futureValue.Years" />
+    </div>
+    <div class="mb-3">
+        <label class="form-label" for="compoundsPerYear">Number of Compounds Per Year</label>
+        <InputNumber class="form-control" step="0.01" id="compoundsPerYear" @bind-value="futureValue.CompoundsPerYear" />
+    </div>
+    <button type="submit" class="btn btn-primary">Submit</button>
+</EditForm>
+
+<p>@message</p>
+
+@code {
+    private FutureValue futureValue = new FutureValue();
+
+    private string message = "Please enter the reelvant values in the fields above and click submit.";
+    private void HandleValidSubmit()
+    {
+        message = $"Principal: ${futureValue.Principal}, Interest Rate: {futureValue.InterestRate}%, Number of Years: {futureValue.Years}, Compounds Per Year: {futureValue.CompoundsPerYear}\nFuture Value: {futureValue.FutureVal}";
+    }
+}
