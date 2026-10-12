@@ -7,7 +7,7 @@ namespace Common.Models
     {
         private decimal principal = 0.01M;
         [Required]
-        [Range(0.01, decimal.MaxValue, ErrorMessage = "Please enter a positive dollar value.")]
+        [Range(typeof(decimal), "0.01", "1000000000000", ErrorMessage = "Please enter a positive dollar value.")]
         public decimal Principal 
         { 
             get { return principal; } 
@@ -15,7 +15,7 @@ namespace Common.Models
         }
         private decimal interestRate = 0.01M;
         [Required]
-        [Range(0.01, 100, ErrorMessage = "Please enter a percentage value (0.01% - 100%)")]
+        [Range(typeof(decimal), "0.01", "100.00", ErrorMessage = "Please enter a percentage value (0.01% - 100%)")]
         public decimal InterestRate 
         { 
             get { return interestRate; } 

@@ -2,26 +2,31 @@
 
 @rendermode InteractiveServer
 
+<PageTitle>Future Value Calculator</PageTitle>
+
 <h1>Future Value Calculator</h1>
 
 <EditForm FormName="FutureValueForm" Model="futureValue" OnValidSubmit="HandleValidSubmit">
-    <DataAnnotationsValidator />"
-    <ValidationSummary />
+    <DataAnnotationsValidator />
     <div class="mb-3">
         <label class="form-label" for="Principal">Principal</label>
         <InputNumber class="form-control" step="0.01" id="principle" @bind-value="futureValue.Principal" />
+        <ValidationMessage For="@(() => futureValue.Principal)" />
     </div>
     <div class="mb-3">
         <label class="form-label" for="interestRate">Annual Interest Rate (Percent)</label>
         <InputNumber class="form-control" step="0.01" id="interestRate" @bind-value="futureValue.InterestRate" />
+        <ValidationMessage For="@(() => futureValue.InterestRate)" />
     </div>
     <div class="mb-3">
         <label class="form-label" for="years">Number of Years</label>
         <InputNumber class="form-control" step="1" id="years" @bind-value="futureValue.Years" />
+        <ValidationMessage For="@(() => futureValue.Years)" />
     </div>
     <div class="mb-3">
         <label class="form-label" for="compoundsPerYear">Number of Compounds Per Year</label>
         <InputNumber class="form-control" step="0.01" id="compoundsPerYear" @bind-value="futureValue.CompoundsPerYear" />
+        <ValidationMessage For="@(() => futureValue.CompoundsPerYear)" />
     </div>
     <button type="submit" class="btn btn-primary">Submit</button>
 </EditForm>
@@ -31,9 +36,9 @@
 @code {
     private FutureValue futureValue = new FutureValue();
 
-    private string message = "Please enter the reelvant values in the fields above and click submit.";
+    private string message = "Please enter the relevant values in the fields above and click submit.";
     private void HandleValidSubmit()
     {
-        message = $"Principal: ${futureValue.Principal}, Interest Rate: {futureValue.InterestRate}%, Number of Years: {futureValue.Years}, Compounds Per Year: {futureValue.CompoundsPerYear}\nFuture Value: {futureValue.FutureVal}";
+        message = $"Principal: ${futureValue.Principal:N2}, Interest Rate: {futureValue.InterestRate}%, Number of Years: {futureValue.Years}, Compounds Per Year: {futureValue.CompoundsPerYear} Future Value: ${futureValue.FutureVal:N2}";
     }
 }
