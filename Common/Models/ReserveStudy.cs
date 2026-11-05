@@ -4,7 +4,7 @@ namespace Common.Models
 {
     public class ReserveStudy
     {
-        public List<Component> components { get; set; } = new List<Component>();
+        public List<RSComponent> components { get; set; } = new List<RSComponent>();
         public int NumUnits { get; set; } = 0;
         public const int StudyHorizon = 30;
     }

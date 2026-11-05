@@ -1,6 +1,6 @@
 namespace Common.Models
 {
-    public class Component
+    public class RSComponent
     {
         public string Name { get; set; } = string.Empty;
         public int UsefulLife { get; set; } = 0;
