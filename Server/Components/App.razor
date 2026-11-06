@@ -18,9 +18,10 @@
 <body>
     <Routes />
     <ReconnectModal />
-    <script src="download.js"></script>
+    @* download.js, chart.js, and the chart.js cdn were provided to me by ChatGPT for file import/export and building a line chart *@
+    <script src="lib/bootstrap/dist/js/download.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    <script src="chart.js"></script>
+    <script src="lib/bootstrap/dist/js/chart.js"></script>
     <script src="@Assets["_framework/blazor.web.js"]"></script>
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/js/bootstrap.bundle.min.js"</script>
     <script src="@Assets["Components/Account/Shared/PasskeySubmit.razor.js"]" type="module"></script>

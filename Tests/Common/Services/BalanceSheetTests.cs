@@ -8,6 +8,7 @@ namespace Tests.Common.Services
     public sealed class BalanceSheetTests
     {
         [TestMethod]
+        // This tests the total assets calculation with 10 items totalling 10000
         public void TotalAssets10Items10000Total()
         {
             BalanceSheetService testClass = new BalanceSheetService();
@@ -24,6 +25,7 @@ namespace Tests.Common.Services
             Assert.AreEqual(expected, result);
         }
         [TestMethod]
+        // This tests the total liabilities calculation with 10 items totalling 10000
         public void TotalLiabilities10Items10000Total()
         {
             BalanceSheetService testClass = new BalanceSheetService();
@@ -40,6 +42,7 @@ namespace Tests.Common.Services
             Assert.AreEqual(expected, result);
         }
         [TestMethod]
+        // This tests the total equity caclcuation with 10000 in assets and 5000 in liabilities
         public void Assets10000Liabilities5000TotalEquity5000()
         {
             BalanceSheetService testClass = new BalanceSheetService();
@@ -63,6 +66,7 @@ namespace Tests.Common.Services
             Assert.AreEqual(expected, result);
         }
         [TestMethod]
+        // This tests the total assets calcuation with an empty assets list
         public void TotalAssetsEmptyList()
         {
             BalanceSheetService testClass = new BalanceSheetService();
@@ -72,6 +76,7 @@ namespace Tests.Common.Services
             Assert.AreEqual(expected, result);
         }
         [TestMethod]
+        // This tests the total liabilities calculation with an empty liabilities list
         public void TotalLiabilitiesEmptyList()
         {
             BalanceSheetService testClass = new BalanceSheetService();
@@ -81,6 +86,7 @@ namespace Tests.Common.Services
             Assert.AreEqual(expected, result);
         }
         [TestMethod]
+        // This tests the total equity calculation with empty asset and liability lists
         public void TotalEquityEmptyLists()
         {
             BalanceSheetService testClass = new BalanceSheetService();

@@ -7,6 +7,7 @@ namespace Tests.Common.Services
     public sealed class ReserveStudyTests
     {
         [TestMethod]
+        // This tests the annual expenditures calculation against hand calculated values
         public void AnnualExpendituresListComparison()
         {
             ReserveStudyService testService = new ReserveStudyService();
@@ -46,6 +47,7 @@ namespace Tests.Common.Services
             CollectionAssert.AreEqual(expected, result);
         }
         [TestMethod]
+        // This tests the total expenditures calculation against hand calculated values
         public void TotalExpendituresExpected5000()
         {
             ReserveStudyService testService = new ReserveStudyService();
@@ -70,6 +72,7 @@ namespace Tests.Common.Services
             Assert.AreEqual(expected, result);
         }
         [TestMethod]
+        // This tests the HOA fee calculation against hard coded values
         public void HOAFees100units5000Expenses()
         {
             ReserveStudyService testService = new ReserveStudyService();
@@ -78,6 +81,7 @@ namespace Tests.Common.Services
             Assert.AreEqual(expected, result);
         }
         [TestMethod]
+        // This tests annual expenditure calculation with an empty component list
         public void AnnualExpendituresEmptyComponentList()
         {
             ReserveStudyService testService = new ReserveStudyService();
@@ -91,6 +95,7 @@ namespace Tests.Common.Services
             CollectionAssert.AreEqual(expected, result);
         }
         [TestMethod]
+        // This tests total expenditures calculation with an empty component list
         public void TotalExpendituresEmptyComponentList()
         {
             ReserveStudyService testService = new ReserveStudyService();
@@ -100,6 +105,7 @@ namespace Tests.Common.Services
             Assert.AreEqual(expected, result);
         }
         [TestMethod]
+        // This tests if the HOA fee calculation throws an error if number of units is zero (resulting in div by zero)
         public void HOAFeesNoUnitsDivByZero()
         {
             ReserveStudyService testService = new ReserveStudyService();

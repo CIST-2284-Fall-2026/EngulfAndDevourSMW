@@ -1,28 +1,32 @@
 @page "/reserve-study"
 @using System.Text
 @using Common.Interfaces
-@using Common.Services
-@using Microsoft.AspNetCore.Mvc.ModelBinding.Binders
-@using Microsoft.CodeAnalysis.CSharp.Syntax
 @rendermode InteractiveServer
+@* Dependency Injection - RS does the reserve study calculations, JS is for file import/export *@
 @inject IReserveStudyService RS
 @inject IJSRuntime JS
 
+@* Title of the tab in browser *@
 <PageTitle>Reserve Study</PageTitle>
 
+@* Headers show reserve study title and display the study horizon *@
 <h2 class="text-center">Reserve Study</h2>
-<h4 class="text-center">Study Horizon: 30 Years</h4>
+<h4 class="text-center">Study Horizon: @ReserveStudy.StudyHorizon Years</h4>
 
+@* Container for components and calculated totals *@
 <div class="container text-center">
     <div class="row">
+        @* Components list *@
         <h3>Components:</h3>
         <ul class="list-unstyled">
+            @* If there are no components yet, shows this message *@
             @if (study.Components.Count == 0)
             {
                 <li>No Components Yet - Click Add Component or Import a .csv File</li>
             }
             else
             {
+                @* Displays each component and its data, with a delete button next to it *@
                 @foreach (RSComponent component in study.Components)
                 {
                     <li>
@@ -30,6 +34,7 @@
                         <button class="btn btn-danger btn-s ms-3" @onclick="() => DeleteComponent(component)">Delete</button>  
                     </li>
                 }
+                @* If delete is clicked next to a component, these buttons are shown below the list to ask for confirmation *@
                 @if (deleteComponent)
                     {
                         <p>Are you sure?</p>
@@ -37,9 +42,8 @@
                         <button class="btn btn-secondary btn-sm" @onclick="CancelDelete">No</button>
                     }
                 <br />
-                <li>
-                    <h4>Totals:</h4>
-                </li>
+                @* Displaying total expenditures and HOA fee reccomendations *@
+                <li><h4>Totals:</h4></li>
                 <li>
                     Total Projected Expenditures over a period of @ReserveStudy.StudyHorizon Years: $@RS.GetTotalExpenditures(RS.GetAnnualExpenditures(study.Components)).ToString("F2")
                 </li>
@@ -49,10 +53,14 @@
             }
         </ul>
     </div>
+    @* Button to add a new component *@
     <button class="btn btn-primary btn-sm mb-3" @onclick="AddComponent">Add Component</button>
+    @* Displaying number of units the HOA oversees, with a button to change the number. *@
     <p class="mb-3">Number of Units: @study.NumUnits <button class="btn btn-primary btn-sm ms-3" @onclick="ChangeNumUnits">Edit</button></p>
 </div>
+@* Contains forms and a canvas depending on certain conditions *@
 <div class="container text-center col-md-6">
+    @* If the user is adding a component, displays a form tied to the newComponent object, with input fields for each property *@
     @if (addNewComponent)
     {
         <EditForm model="newComponent" OnValidSubmit="HandleValidSubmitComponent">
@@ -67,6 +75,7 @@
             <button type="submit" class="btn btn-primary">Submit</button>
         </EditForm>
     }
+    @* If the user is changing the number of units, displays a form tied to the research study object with an input for number of units *@
     @if (changeNumUnits)
     {
         <EditForm model="study" OnValidSubmit="HandleValidSubmitUnits">
@@ -75,13 +84,16 @@
             <button type="submit" class="btn btn-primary">Submit</button>
         </EditForm>
     }
+    @* If there are components in the list, the canvas is created *@
     @if (study.Components.Count > 0)
     {
         <div style="width: 100%; max-width: 800px; height: 400px; margin: auto;">
             <canvas id="expenditureChart"></canvas>
         </div>
     }
+    @* Button to export the current component list to a .csv file *@
     <button class="btn btn-primary" @onclick="ExportToCSV">Export to .csv File</button> <br /> <br />
+    @* Button to import a .csv file to populate the component list. Class tags are manipulated to make it look like a normal button *@
     <label class="btn btn-primary position-relative" for="csvImport">
         Import .csv File
         <InputFile OnChange="ImportComponents" accept=".csv" class="position-absolute top-0 start-0 w-100 h-100 opacity-0" />
@@ -89,24 +101,30 @@
 </div>
 
 @code {
+    // Model objects to store data
     private ReserveStudy study = new();
     private RSComponent newComponent = new();
     private RSComponent componentToDelete = new();
+    // Booleans to track state
     private bool addNewComponent = false;
     private bool deleteComponent = false;
     private bool changeNumUnits = false;
     private bool graphBuilt = false;
     private bool createGraph = false;
+    // Annual expenditure list for the line graph
     private List<decimal> annualExpenditures = new();
+    // Called when add component is clicked - boolean is flipped
     private void AddComponent()
     {
         addNewComponent = true;
     }
+    // Called when delete component is clicked - boolean is flipped, componentToDelete is assigned
     private void DeleteComponent(RSComponent component)
     {
         deleteComponent = true;
         componentToDelete = component;
     }
+    // Called if the user confirms the deletion - removes the component, resets the boolean and componentToDelete, calls UpdateGraph()
     private async Task ConfirmDelete()
     {
         study.Components.Remove(componentToDelete);
@@ -114,11 +132,13 @@
         componentToDelete = new();
         await UpdateGraph();
     }
+    // Called if the user cancels the deletion - resets teh boolean and componentToDelete
     private void CancelDelete()
     {
         deleteComponent = false;
         componentToDelete = new();
     }
+    // Called when the user submits a new component - Adds the component, resets boolean and newComponent, recalculates annual expenditures, calls UpdateGraph()
     private async Task HandleValidSubmitComponent()
     {
         study.Components.Add(newComponent);
@@ -127,62 +147,77 @@
         annualExpenditures = RS.GetAnnualExpenditures(study.Components);
         await UpdateGraph();
     }
+    // Called when components change and the graph needs to be updated
     private async Task UpdateGraph()
     {
+        // Recalculating annual expenditures
         annualExpenditures = RS.GetAnnualExpenditures(study.Components);
+        // If the components list is empty (the last component was just deleted), destroys the chart, sets graphBuilt to false
         if (study.Components.Count == 0)
         {
-            await JS.InvokeVoidAsync("destroyExpenditureChart");
+            await JS.InvokeVoidAsync("destroyExpenditureChart"); // function provide by ChatGPT
             graphBuilt = false;
         }
+        // If the graph isn't built yet, sets createGraph to true (causes graph to be built on re-render)
         else if (!graphBuilt)
         {
             createGraph = true;
         }
+        // If the graph is built and just needs to be updated, calls the updateExpenditureChart function
         else
         {
-            await JS.InvokeVoidAsync("updateExpenditureChart", annualExpenditures);
+            await JS.InvokeVoidAsync("updateExpenditureChart", annualExpenditures); // function provided by ChatGPT
         }
     }
+    // Called when clicking edit on number of units, flips the boolean
     private void ChangeNumUnits()
     {
         changeNumUnits = true;
     }
+    // Called when submitting the new value of number of units, flips the boolean to hide the form
     private void HandleValidSubmitUnits()
     {
         changeNumUnits = false;
     }
+    // Called after every page render
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {
+        // If the graph needs to be created, creates it and sets the booleans
         if (createGraph)
         {
-            await JS.InvokeVoidAsync("createExpenditureChart", annualExpenditures);
+            await JS.InvokeVoidAsync("createExpenditureChart", annualExpenditures); // function provided by ChatGPT
             graphBuilt = true;
             createGraph = false;
         }
     }
+    // Called when the user clicks import .csv file - this function was provided by ChatGPT, although the comments are my own
     private async Task ImportComponents(InputFileChangeEventArgs e)
     {
+        // e.File represents the file selected in the file import
         var file = e.File;
+        // Opens the file and provides a stream of the contents (max size 1000000 bytes)
         using var stream = file.OpenReadStream(1000000);
+        // Reads the stream with the file contents
         using var reader = new StreamReader(stream);
-
+        // Creating a string to store lines and a boolean to check if it's the first line
         string? line;
         bool firstLine = true;
-
+        // Resetting the components list so the file represents its own study and doesn't simply add to the existing list
         study.Components = new();
 
+        // While the next line is not null...
         while ((line = await reader.ReadLineAsync()) != null)
         {
+            // If it's the first line, skip it (first line contains a header)
             if (firstLine)
             {
                 firstLine = false;
                 continue;
             }
+            // Breaking the line up into its three segments
             string[] fields = line.Split(',');
+            // If the line was three items long, and each line parses into the expected variable type, a new component is created and added to the list
             if (fields.Length == 3 && int.TryParse(fields[1], out int usefulLife) && decimal.TryParse(fields[2],
-            System.Globalization.NumberStyles.Number,
-            System.Globalization.CultureInfo.InvariantCulture,
             out decimal replacementCost))
             {
                 RSComponent component = new()
@@ -194,19 +229,24 @@
                 study.Components.Add(component);
             }
         }
-
+        // Calls UpdateGraph since the components list has changed
         await UpdateGraph();
     }
+    // Called when the user clicks export to .csv
     private async Task ExportToCSV()
     {
+        // Creating a stringbuilder to store the values being exported
         StringBuilder csv = new();
+        // Creating the header line
         csv.AppendLine("Name,UsefulLife,ReplacementCost");
+        // Adding a line for each component
         foreach (RSComponent component in study.Components)
         {
             csv.AppendLine($"{component.Name},{component.UsefulLife},{component.ReplacementCost}");
         }
-
+        // Creating a filename from the datestamp
         string fileName = $"{DateTime.Now}.csv";
+        // Calling the javascript function downloadCsv, which was provided by ChatGPT
         await JS.InvokeVoidAsync("downloadCsv", fileName, csv.ToString());
     }
 }

@@ -1,29 +1,39 @@
 @page "/balance-sheet"
 @using Common.Interfaces
-@using Common.Services
 @using Common.Models
 @using DocumentFormat.OpenXml
 @using DocumentFormat.OpenXml.Packaging
 @using DocumentFormat.OpenXml.Wordprocessing
 @using System.IO
+
+@* Dependency Injection - IJSRuntime is used for file download, BalanceSheetService handles balance sheet calculations *@
 @inject IJSRuntime JS
 @inject IBalanceSheetService BalanceSheetService
 @rendermode InteractiveServer
 
+@* This is the title you see on the tab in browser *@
 <PageTitle>Balance Sheet</PageTitle>
 
+@* Header contains the page title. *@
 <h2 class="text-center">Balance Sheet</h2>
 
+@* Container for assets, liabilities, and total equity *@
 <div class="container">
+    @* First row contains assets and liabilities *@
     <div class="row">
+        @* Assets column - "col-md-6" = on medium screens assets and liabilities will be side by side, all text in here will be centered *@
         <div class="col-md-6 text-center">
             <h3>Assets</h3>
+            @* Unordered List - "list-unstyled" = no bullet points *@
             <ul class="list-unstyled">
+                @* Lists each Asset with a delete button next to it *@
                 @foreach (LineItem item in balanceSheet.Assets)
                 {
                     <li>@item.Name - $@item.Amount <button class="btn btn-danger btn-sm ms-3" @onclick="() => DeleteAsset(item)">Delete</button></li>
                 }
+                @* Displays the calculated total for assets *@
                 <li>Total: $@BalanceSheetService.CalculateTotalAssets(balanceSheet.Assets)</li>
+                @* If delete is clicked, asks the user if they're sure below the list of assets. *@
                 @if (deleteAsset)
                     {
                         <p>
@@ -32,27 +42,35 @@
                             <button class="btn btn-secondary btn-sm" @onclick="CancelDelete">No</button>
                         </p>
                     }
+                @* Button to add an asset. *@
                 <button class="btn btn-primary btn-sm" @onclick="NewAsset">New Asset</button>
             </ul>
         </div>
+        @* Liabilities column - "col-md-6" = on medium screens assets and liabilities will be side by side, all text in here will be centered *@
         <div class="col-md-6 text-center">
             <h3>Liabilities</h3>
+            @* Unordered List - "list-unstyled" = no bullet points *@
             <ul class="list-unstyled">
+                @* Lists each Liability with a delete button next to it *@
                 @foreach (LineItem item in balanceSheet.Liabilities)
                 {
                     <li>@item.Name - $@item.Amount <button class="btn btn-danger btn-s ms-3" @onclick="() => DeleteLiability(item)">Delete</button></li>
                 }
+                @* Displays the calculated total for liabilities *@
                 <li>Total: $@BalanceSheetService.CalculateTotalLiabilities(balanceSheet.Liabilities)</li>
+                @* If delete is clicked, asks the user if they're sure below the list of liabilities. *@
                 @if (deleteLiability)
                     {
                         <p>Are you sure?</p>
                         <button class="btn btn-danger btn-sm" @onclick="ConfirmDelete">Yes</button>
                         <button class="btn btn-secondary btn-sm" @onclick="CancelDelete">No</button>
                     }
+                @* Button to add a liability. *@
                 <button class="btn btn-primary btn-sm" @onclick="NewLiability">New Liability</button>
             </ul>
         </div>
     </div>
+    @* Row containing total Equity - spans the whole screen ("col-md-12") beneath assets and liabilities *@
     <div class="row">
         <div class="col-md-12 text-center">
             <h3>Total Equity</h3>
@@ -60,12 +78,15 @@
         </div>
     </div>
 </div>
+@* Contains a button to download the balance sheet and a button to upload a document *@
 <div class="text-center">
     <button class="btn-primary" @onclick="DownloadBalanceSheet">Download Balance Sheet</button> <br /> <br /> <br />
+    @* The combination of class tags on the label and the InputFile lead to the appearance of a button matching the other buttons on the page. It looked pretty bad without doing this. *@
     <label class="btn btn-primary position-relative" for="csvImport">
         Upload Balance Sheet
         <InputFile OnChange="HandleFileUpload" accept=".docx" class="position-absolute top-0 start-0 w-100 h-100 opacity-0" />
     </label> <br />
+    @* If a document has been uploaded, displays the file name and upload date, per instructions. Instructions were clear that parsing of the file was not necessary. *@
     @if (doc != null) 
     {
         <p>Uploaded Document: @doc.FileName</p>
@@ -73,8 +94,10 @@
     }
 </div>
 
+@* If new asset or new liability was clicked, forms are displayed *@
 @if (newAssetForm || newLiabilityForm)
 {
+    @* Asset form is displayed with the LineItem model newAsset, binding inputs to its values *@
     if (newAssetForm)
     {
         <EditForm model="newAsset" OnValidSubmit="HandleValidSubmit">
@@ -87,6 +110,7 @@
             <button type="submit" class="btn btn-primary">Submit</button>
         </EditForm>
     }
+    @* Liability form is displayed with the LineItem model newLiability, binding inputs to its values *@
     if (newLiabilityForm)
     {
         <EditForm model="newLiability" OnValidSubmit="HandleValidSubmit">
@@ -103,42 +127,53 @@
 }
 
 @code {
+    // Various model objects to store data
     private BalanceSheet balanceSheet = new BalanceSheet();
-    private decimal equity = 0;
-    private bool newAssetForm = false;
-    private bool newLiabilityForm = false;
-    private bool deleteAsset = false;
-    private bool deleteLiability = false;
     private LineItem newAsset = new();
     private LineItem newLiability = new();
     private LineItem assetToDelete = new();
     private LineItem liabilityToDelete = new();
-    private DateTime date = DateTime.Today;
     private UploadedDocument? doc;
+    // Variable to store total equity
+    private decimal equity = 0;
+    // Bools to track state/activity
+    private bool newAssetForm = false;
+    private bool newLiabilityForm = false;
+    private bool deleteAsset = false;
+    private bool deleteLiability = false;
+    // DateTime object for the document upload
+    private DateTime date = DateTime.Today;
+    // Calculates equity after initialization (currently zero, may be different later with databases)
     protected override void OnInitialized()
     {
         equity = BalanceSheetService.CalculateEquity(BalanceSheetService.CalculateTotalAssets(balanceSheet.Assets), BalanceSheetService.CalculateTotalLiabilities(balanceSheet.Liabilities));
     }
+    // Handling the user clicking New Asset - boolean is flipped
     private void NewAsset()
     {
         newAssetForm = true;
     }
+    // Handling the user clicking New Liability - boolean is flipped
     private void NewLiability()
     {
         newLiabilityForm = true;
     }
+    // Handling the user clicking delete next to an asset - boolean is flipped and the assetToDelete is assigned
     private void DeleteAsset(LineItem asset)
     {
         deleteAsset = true;
         assetToDelete = asset;
     }
+    // Handling the user clicking delete next to a liability - boolean is flipped and the liabilityToDelete is assigned
     private void DeleteLiability(LineItem liability)
     {
         deleteLiability = true;
         liabilityToDelete = liability;
     }
+    // Handling the user clicking "yes" to confirm a delete
     private void ConfirmDelete()
     {
+        // Deletes the asset or liability and resets the booleans and models
         if (deleteAsset)
         {
             deleteAsset = false;
@@ -152,8 +187,10 @@
             liabilityToDelete = new();
         }
     }
+    // Handling the user clicking "no" to cancel a delete
     private void CancelDelete()
     {
+        // Resets booleans and models without deleting anything
         if (deleteAsset)
         {
             deleteAsset = false;
@@ -165,8 +202,10 @@
             liabilityToDelete = new();
         }
     }
+    // Called when the user submits a new asset or liability
     private void HandleValidSubmit()
     {
+        // Adds the new asset or liability, resets models and booleans, recalculates total equity
         if (newAssetForm)
         {
             newAssetForm = false;
@@ -182,8 +221,10 @@
             equity = BalanceSheetService.CalculateEquity(BalanceSheetService.CalculateTotalAssets(balanceSheet.Assets), BalanceSheetService.CalculateTotalLiabilities(balanceSheet.Liabilities));
         }
     }
+    // Called when user clicks Download Balance Sheet
     private async void DownloadBalanceSheet()
     {
+        // Creating a list of lines for the document. Starts with general data.
         List<string> lines = new()
         {
             "Balance Sheet",
@@ -191,51 +232,63 @@
             $"Date: {date.ToString("MM/dd/yyyy")}",
             "Assets:"
         };
+        // Adds a line for each asset displaying name and value
         foreach (LineItem asset in balanceSheet.Assets)
         {
             lines.Add($"{asset.Name} - ${asset.Amount}");
         }
+        // Adds a line for total assets and the start of liabilities
         lines.Add($"Total: ${BalanceSheetService.CalculateTotalAssets(balanceSheet.Assets)}");
         lines.Add("Liabilities:");
+        // Adds a line for each liability displaying name and value
         foreach (LineItem liability in balanceSheet.Liabilities)
         {
             lines.Add($"{liability.Name} - ${liability.Amount}");
         }
+        // Adds a line for total liabilities and total equity
         lines.Add($"Total: ${BalanceSheetService.CalculateTotalLiabilities(balanceSheet.Liabilities)}");
         lines.Add($"Equity: ${BalanceSheetService.CalculateEquity(BalanceSheetService.CalculateTotalAssets(balanceSheet.Assets), BalanceSheetService.CalculateTotalLiabilities(balanceSheet.Liabilities))}");
+        // Downloads a document using the generated list of strings.
         await DownloadWordDocument(lines);
     }
+    // Called after building the balance sheet into a list of strings. This function was provided by ChatGPT. The comments are my own after having ChatGPT walk me through it.
     private async Task DownloadWordDocument(List<string> lines)
     {
+        // Creating a memorystream - this is like a temporary file in memory. The using directive ensures this is disposed of when not in use
         using MemoryStream memoryStream = new();
 
+        // WordprocessingDocument represents a Word document that will be stored at memoryStream in the .docx format
         using (WordprocessingDocument document =
             WordprocessingDocument.Create(
                 memoryStream,
                 WordprocessingDocumentType.Document))
         {
+            // Word documents have a heirarchical structure. Document -> MainDocumentPart (main content) -> Document (content structure) -> Body (where visible content goes) -> Paragraphs (contain the data) -> Runs (text within a paragraph)
+            // Adding the main document part
             MainDocumentPart mainPart = document.AddMainDocumentPart();
-
+            // Adding a document
             mainPart.Document = new Document();
+            // Adding a body
             Body body = mainPart.Document.AppendChild(new Body());
-
+            // For each line, adding a paragraph and a run with the line to it
             foreach (string line in lines)
             {
                 Paragraph paragraph = body.AppendChild(new Paragraph());
                 Run run = paragraph.AppendChild(new Run());
                 run.AppendChild(new Text(line));
             }
-
+            // Saves the document
             mainPart.Document.Save();
         }
-
+        // Converting the document into bytes
         byte[] documentBytes = memoryStream.ToArray();
-
+        // Calling the JavaScript function downloadFile with the name BalanceSheet.docx and the content documentBytes
         await JS.InvokeVoidAsync(
             "downloadFile",
             "BalanceSheet.docx",
             documentBytes);
     }
+    // Called after clicking upload balance sheet. Assigns file name and date stamp to the model, which will be displayed in browser.
     private void HandleFileUpload(InputFileChangeEventArgs e)
     {
         doc = new() { FileName = e.File.Name, UploadDate = DateTime.Now};
