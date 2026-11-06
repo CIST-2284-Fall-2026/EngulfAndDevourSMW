@@ -10,6 +10,8 @@
 @inject IBalanceSheetService BalanceSheetService
 @rendermode InteractiveServer
 
+<PageTitle>Balance Sheet</PageTitle>
+
 <h2 class="text-center">Balance Sheet</h2>
 
 <div class="container">
@@ -61,7 +63,7 @@
 <div class="text-center">
     <button class="btn-primary" @onclick="DownloadBalanceSheet">Download Balance Sheet</button> <br /> <br /> <br />
     <h2>Upload File: </h2> <br /> <br />
-    <InputFile OnChange="HandleFileUpload" accept=".docx" style="overflow: hidden;" />
+    <InputFile OnChange="HandleFileUpload" accept=".docx" style="overflow: hidden;" /> <br />
     @if (doc != null) 
     {
         <p>Uploaded Document: @doc.FileName</p>

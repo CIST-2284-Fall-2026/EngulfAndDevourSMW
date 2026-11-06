@@ -23,10 +23,10 @@ namespace Tests.Common.Services
             comp3.Name = "Comp3";
             comp3.UsefulLife = 15;
             comp3.ReplacementCost = 500m;
-            testStudy.components.Add(comp1);
-            testStudy.components.Add(comp2);
-            testStudy.components.Add(comp3);
-            List<decimal> result = testService.GetAnnualExpenditures(testStudy.components);
+            testStudy.Components.Add(comp1);
+            testStudy.Components.Add(comp2);
+            testStudy.Components.Add(comp3);
+            List<decimal> result = testService.GetAnnualExpenditures(testStudy.Components);
             List<decimal> expected = new();
             for (int i = 1; i <= 30; i++)
             {
@@ -62,11 +62,11 @@ namespace Tests.Common.Services
             comp3.Name = "Comp3";
             comp3.UsefulLife = 15;
             comp3.ReplacementCost = 500m;
-            testStudy.components.Add(comp1);
-            testStudy.components.Add(comp2);
-            testStudy.components.Add(comp3);
+            testStudy.Components.Add(comp1);
+            testStudy.Components.Add(comp2);
+            testStudy.Components.Add(comp3);
             decimal expected = 5000m;
-            decimal result = testService.GetTotalExpenditures(testService.GetAnnualExpenditures(testStudy.components));
+            decimal result = testService.GetTotalExpenditures(testService.GetAnnualExpenditures(testStudy.Components));
             Assert.AreEqual(expected, result);
         }
         [TestMethod]
@@ -82,7 +82,7 @@ namespace Tests.Common.Services
         {
             ReserveStudyService testService = new ReserveStudyService();
             ReserveStudy testStudy = new ReserveStudy();
-            List<decimal> result = testService.GetAnnualExpenditures(testStudy.components);
+            List<decimal> result = testService.GetAnnualExpenditures(testStudy.Components);
             List<decimal> expected = new List<decimal>();
             for (int i = 0; i < 30; i++)
             {
@@ -95,7 +95,7 @@ namespace Tests.Common.Services
         {
             ReserveStudyService testService = new ReserveStudyService();
             ReserveStudy testStudy = new ReserveStudy();
-            decimal result = testService.GetTotalExpenditures(testService.GetAnnualExpenditures(testStudy.components));
+            decimal result = testService.GetTotalExpenditures(testService.GetAnnualExpenditures(testStudy.Components));
             decimal expected = 0;
             Assert.AreEqual(expected, result);
         }

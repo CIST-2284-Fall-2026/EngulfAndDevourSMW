@@ -1,4 +1,212 @@
 @page "/reserve-study"
+@using System.Text
+@using Common.Interfaces
+@using Common.Services
+@using Microsoft.AspNetCore.Mvc.ModelBinding.Binders
+@using Microsoft.CodeAnalysis.CSharp.Syntax
 @rendermode InteractiveServer
+@inject IReserveStudyService RS
+@inject IJSRuntime JS
 
-<h3>Welcome to the reserve study page.</h3>
+<PageTitle>Reserve Study</PageTitle>
+
+<h2 class="text-center">Reserve Study</h2>
+<h4 class="text-center">Study Horizon: 30 Years</h4>
+
+<div class="container text-center">
+    <div class="row">
+        <h3>Components:</h3>
+        <ul class="list-unstyled">
+            @if (study.Components.Count == 0)
+            {
+                <li>No Components Yet - Click Add Component or Import a .csv File</li>
+            }
+            else
+            {
+                @foreach (RSComponent component in study.Components)
+                {
+                    <li>
+                        @component.Name - Useful Life: @component.UsefulLife Years - Replacement Cost: $@component.ReplacementCost
+                        <button class="btn btn-danger btn-s ms-3" @onclick="() => DeleteComponent(component)">Delete</button>  
+                    </li>
+                }
+                @if (deleteComponent)
+                    {
+                        <p>Are you sure?</p>
+                        <button class="btn btn-danger btn-sm" @onclick="ConfirmDelete">Yes</button>
+                        <button class="btn btn-secondary btn-sm" @onclick="CancelDelete">No</button>
+                    }
+                <br />
+                <li>
+                    <h4>Totals:</h4>
+                </li>
+                <li>
+                    Total Projected Expenditures over a period of @ReserveStudy.StudyHorizon Years: $@RS.GetTotalExpenditures(RS.GetAnnualExpenditures(study.Components)).ToString("F2")
+                </li>
+                <li>
+                    Recommended HOA Fee Per Unit: $@RS.GetMonthlyHOAFeePerUnit(RS.GetTotalExpenditures(RS.GetAnnualExpenditures(study.Components)), study.NumUnits).ToString("F2")
+                </li>    
+            }
+        </ul>
+    </div>
+    <button class="btn btn-primary btn-sm mb-3" @onclick="AddComponent">Add Component</button>
+    <p class="mb-3">Number of Units: @study.NumUnits <button class="btn btn-primary btn-sm ms-3" @onclick="ChangeNumUnits">Edit</button></p>
+</div>
+<div class="container text-center col-md-6">
+    @if (addNewComponent)
+    {
+        <EditForm model="newComponent" OnValidSubmit="HandleValidSubmitComponent">
+            <DataAnnotationsValidator />
+            <ValidationSummary />
+            <label for="name">Name:</label>
+            <InputText class="form-control" @bind-value="newComponent.Name"></InputText>
+            <label for="amount">Useful Years:</label>
+            <InputNumber class="form-control" @bind-value="newComponent.UsefulLife"></InputNumber>
+            <label for="amount">Replacement Cost:</label>
+            <InputNumber class="form-control" @bind-value="newComponent.ReplacementCost"></InputNumber>
+            <button type="submit" class="btn btn-primary">Submit</button>
+        </EditForm>
+    }
+    @if (changeNumUnits)
+    {
+        <EditForm model="study" OnValidSubmit="HandleValidSubmitUnits">
+            <label for="numUnits">Number of Units:</label>
+            <InputNumber class="form-control" @bind-value="study.NumUnits"></InputNumber>
+            <button type="submit" class="btn btn-primary">Submit</button>
+        </EditForm>
+    }
+    @if (study.Components.Count > 0)
+    {
+        <div style="width: 100%; max-width: 800px; height: 400px; margin: auto;">
+            <canvas id="expenditureChart"></canvas>
+        </div>
+    }
+    <button class="btn btn-primary" @onclick="ExportToCSV">Export to .csv File</button> <br /> <br />
+    <label class="btn btn-primary position-relative" for="csvImport">
+        Import .csv File
+        <InputFile OnChange="ImportComponents" accept=".csv" class="position-absolute top-0 start-0 w-100 h-100 opacity-0" />
+    </label> <br />
+</div>
+
+@code {
+    private ReserveStudy study = new();
+    private RSComponent newComponent = new();
+    private RSComponent componentToDelete = new();
+    private bool addNewComponent = false;
+    private bool deleteComponent = false;
+    private bool changeNumUnits = false;
+    private bool graphBuilt = false;
+    private bool createGraph = false;
+    private List<decimal> annualExpenditures = new();
+    private void AddComponent()
+    {
+        addNewComponent = true;
+    }
+    private void DeleteComponent(RSComponent component)
+    {
+        deleteComponent = true;
+        componentToDelete = component;
+    }
+    private async Task ConfirmDelete()
+    {
+        study.Components.Remove(componentToDelete);
+        deleteComponent = false;
+        componentToDelete = new();
+        await UpdateGraph();
+    }
+    private void CancelDelete()
+    {
+        deleteComponent = false;
+        componentToDelete = new();
+    }
+    private async Task HandleValidSubmitComponent()
+    {
+        study.Components.Add(newComponent);
+        newComponent = new();
+        addNewComponent = false;
+        annualExpenditures = RS.GetAnnualExpenditures(study.Components);
+        await UpdateGraph();
+    }
+    private async Task UpdateGraph()
+    {
+        annualExpenditures = RS.GetAnnualExpenditures(study.Components);
+        if (study.Components.Count == 0)
+        {
+            await JS.InvokeVoidAsync("destroyExpenditureChart");
+            graphBuilt = false;
+        }
+        else if (!graphBuilt)
+        {
+            createGraph = true;
+        }
+        else
+        {
+            await JS.InvokeVoidAsync("updateExpenditureChart", annualExpenditures);
+        }
+    }
+    private void ChangeNumUnits()
+    {
+        changeNumUnits = true;
+    }
+    private void HandleValidSubmitUnits()
+    {
+        changeNumUnits = false;
+    }
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (createGraph)
+        {
+            await JS.InvokeVoidAsync("createExpenditureChart", annualExpenditures);
+            graphBuilt = true;
+            createGraph = false;
+        }
+    }
+    private async Task ImportComponents(InputFileChangeEventArgs e)
+    {
+        var file = e.File;
+        using var stream = file.OpenReadStream(1000000);
+        using var reader = new StreamReader(stream);
+
+        string? line;
+        bool firstLine = true;
+
+        study.Components = new();
+
+        while ((line = await reader.ReadLineAsync()) != null)
+        {
+            if (firstLine)
+            {
+                firstLine = false;
+                continue;
+            }
+            string[] fields = line.Split(',');
+            if (fields.Length == 3 && int.TryParse(fields[1], out int usefulLife) && decimal.TryParse(fields[2],
+            System.Globalization.NumberStyles.Number,
+            System.Globalization.CultureInfo.InvariantCulture,
+            out decimal replacementCost))
+            {
+                RSComponent component = new()
+                {
+                    Name = fields[0],
+                    UsefulLife = usefulLife,
+                    ReplacementCost = replacementCost
+                };
+                study.Components.Add(component);
+            }
+        }
+
+        await UpdateGraph();
+    }
+    private async Task ExportToCSV()
+    {
+        StringBuilder csv = new();
+        csv.AppendLine("Name,UsefulLife,ReplacementCost");
+        foreach (RSComponent component in study.Components)
+        {
+            csv.AppendLine($"{component.Name},{component.UsefulLife},{component.ReplacementCost}");
+        }
+
+        string fileName = $"{DateTime.Now}.csv";
+        await JS.InvokeVoidAsync("downloadCsv", fileName, csv.ToString());
+    }
+}
