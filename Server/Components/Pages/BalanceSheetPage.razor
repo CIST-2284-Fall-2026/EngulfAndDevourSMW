@@ -1,4 +1,239 @@
 @page "/balance-sheet"
+@using Common.Interfaces
+@using Common.Services
+@using Common.Models
+@using DocumentFormat.OpenXml
+@using DocumentFormat.OpenXml.Packaging
+@using DocumentFormat.OpenXml.Wordprocessing
+@using System.IO
+@inject IJSRuntime JS
+@inject IBalanceSheetService BalanceSheetService
 @rendermode InteractiveServer
 
-<h3>Welcome to the balance sheet page.</h3>
+<h2 class="text-center">Balance Sheet</h2>
+
+<div class="container">
+    <div class="row">
+        <div class="col-md-6 text-center">
+            <h3>Assets</h3>
+            <ul class="list-unstyled">
+                @foreach (LineItem item in balanceSheet.Assets)
+                {
+                    <li>@item.Name - $@item.Amount <button class="btn btn-danger btn-sm ms-3" @onclick="() => DeleteAsset(item)">Delete</button></li>
+                }
+                <li>Total: $@BalanceSheetService.CalculateTotalAssets(balanceSheet.Assets)</li>
+                @if (deleteAsset)
+                    {
+                        <p>
+                            Are you sure? 
+                            <button class="btn btn-danger btn-sm" @onclick="ConfirmDelete">Yes</button>
+                            <button class="btn btn-secondary btn-sm" @onclick="CancelDelete">No</button>
+                        </p>
+                    }
+                <button class="btn btn-primary btn-sm" @onclick="NewAsset">New Asset</button>
+            </ul>
+        </div>
+        <div class="col-md-6 text-center">
+            <h3>Liabilities</h3>
+            <ul class="list-unstyled">
+                @foreach (LineItem item in balanceSheet.Liabilities)
+                {
+                    <li>@item.Name - $@item.Amount <button class="btn btn-danger btn-s ms-3" @onclick="() => DeleteLiability(item)">Delete</button></li>
+                }
+                <li>Total: $@BalanceSheetService.CalculateTotalLiabilities(balanceSheet.Liabilities)</li>
+                @if (deleteLiability)
+                    {
+                        <p>Are you sure?</p>
+                        <button class="btn btn-danger btn-sm" @onclick="ConfirmDelete">Yes</button>
+                        <button class="btn btn-secondary btn-sm" @onclick="CancelDelete">No</button>
+                    }
+                <button class="btn btn-primary btn-sm" @onclick="NewLiability">New Liability</button>
+            </ul>
+        </div>
+    </div>
+    <div class="row">
+        <div class="col-md-12 text-center">
+            <h3>Total Equity</h3>
+            <p>$@equity</p>
+        </div>
+    </div>
+</div>
+<div class="text-center">
+    <button class="btn-primary" @onclick="DownloadBalanceSheet">Download Balance Sheet</button> <br /> <br /> <br />
+    <h2>Upload File: </h2> <br /> <br />
+    <InputFile OnChange="HandleFileUpload" accept=".docx" style="overflow: hidden;" />
+    @if (doc != null) 
+    {
+        <p>Uploaded Document: @doc.FileName</p>
+        <p>Upload Date: @doc.UploadDate.ToString("MM/dd/yyyy h:mm tt")</p>
+    }
+</div>
+
+@if (newAssetForm || newLiabilityForm)
+{
+    if (newAssetForm)
+    {
+        <EditForm model="newAsset" OnValidSubmit="HandleValidSubmit">
+            <DataAnnotationsValidator />
+            <ValidationSummary />
+            <label for="name">Name:</label>
+            <InputText class="form-control" @bind-value="newAsset.Name"></InputText>
+            <label for="amount">Amount:</label>
+            <InputNumber class="form-control" @bind-value="newAsset.Amount"></InputNumber>
+            <button type="submit" class="btn btn-primary">Submit</button>
+        </EditForm>
+    }
+    if (newLiabilityForm)
+    {
+        <EditForm model="newLiability" OnValidSubmit="HandleValidSubmit">
+            <DataAnnotationsValidator />
+            <ValidationSummary />
+            <label for="name">Name:</label>
+            <InputText class="form-control" @bind-value="newLiability.Name"></InputText>
+            <label for="amount">Amount:</label>
+            <InputNumber class="form-control" @bind-value="newLiability.Amount"></InputNumber>
+            <button type="submit" class="btn btn-primary">Submit</button>
+        </EditForm>
+    }
+
+}
+
+@code {
+    private BalanceSheet balanceSheet = new BalanceSheet();
+    private decimal equity = 0;
+    private bool newAssetForm = false;
+    private bool newLiabilityForm = false;
+    private bool deleteAsset = false;
+    private bool deleteLiability = false;
+    private LineItem newAsset = new();
+    private LineItem newLiability = new();
+    private LineItem assetToDelete = new();
+    private LineItem liabilityToDelete = new();
+    private DateTime date = DateTime.Today;
+    private UploadedDocument? doc;
+    protected override void OnInitialized()
+    {
+        equity = BalanceSheetService.CalculateEquity(BalanceSheetService.CalculateTotalAssets(balanceSheet.Assets), BalanceSheetService.CalculateTotalLiabilities(balanceSheet.Liabilities));
+    }
+    private void NewAsset()
+    {
+        newAssetForm = true;
+    }
+    private void NewLiability()
+    {
+        newLiabilityForm = true;
+    }
+    private void DeleteAsset(LineItem asset)
+    {
+        deleteAsset = true;
+        assetToDelete = asset;
+    }
+    private void DeleteLiability(LineItem liability)
+    {
+        deleteLiability = true;
+        liabilityToDelete = liability;
+    }
+    private void ConfirmDelete()
+    {
+        if (deleteAsset)
+        {
+            deleteAsset = false;
+            balanceSheet.Assets.Remove(assetToDelete);
+            assetToDelete = new();
+        }
+        else if (deleteLiability)
+        {
+            deleteLiability = false;
+            balanceSheet.Liabilities.Remove(liabilityToDelete);
+            liabilityToDelete = new();
+        }
+    }
+    private void CancelDelete()
+    {
+        if (deleteAsset)
+        {
+            deleteAsset = false;
+            assetToDelete = new();
+        }
+        else if (deleteLiability)
+        {
+            deleteLiability = false;
+            liabilityToDelete = new();
+        }
+    }
+    private void HandleValidSubmit()
+    {
+        if (newAssetForm)
+        {
+            newAssetForm = false;
+            balanceSheet.Assets.Add(newAsset);
+            newAsset = new();
+            equity = BalanceSheetService.CalculateEquity(BalanceSheetService.CalculateTotalAssets(balanceSheet.Assets), BalanceSheetService.CalculateTotalLiabilities(balanceSheet.Liabilities));
+        }
+        if (newLiabilityForm)
+        {
+            newLiabilityForm = false;
+            balanceSheet.Liabilities.Add(newLiability);
+            newLiability = new();
+            equity = BalanceSheetService.CalculateEquity(BalanceSheetService.CalculateTotalAssets(balanceSheet.Assets), BalanceSheetService.CalculateTotalLiabilities(balanceSheet.Liabilities));
+        }
+    }
+    private async void DownloadBalanceSheet()
+    {
+        List<string> lines = new()
+        {
+            "Balance Sheet",
+            "Company: Engulf & Devour",
+            $"Date: {date.ToString("MM/dd/yyyy")}",
+            "Assets:"
+        };
+        foreach (LineItem asset in balanceSheet.Assets)
+        {
+            lines.Add($"{asset.Name} - ${asset.Amount}");
+        }
+        lines.Add($"Total: ${BalanceSheetService.CalculateTotalAssets(balanceSheet.Assets)}");
+        lines.Add("Liabilities:");
+        foreach (LineItem liability in balanceSheet.Liabilities)
+        {
+            lines.Add($"{liability.Name} - ${liability.Amount}");
+        }
+        lines.Add($"Total: ${BalanceSheetService.CalculateTotalLiabilities(balanceSheet.Liabilities)}");
+        lines.Add($"Equity: ${BalanceSheetService.CalculateEquity(BalanceSheetService.CalculateTotalAssets(balanceSheet.Assets), BalanceSheetService.CalculateTotalLiabilities(balanceSheet.Liabilities))}");
+        await DownloadWordDocument(lines);
+    }
+    private async Task DownloadWordDocument(List<string> lines)
+    {
+        using MemoryStream memoryStream = new();
+
+        using (WordprocessingDocument document =
+            WordprocessingDocument.Create(
+                memoryStream,
+                WordprocessingDocumentType.Document))
+        {
+            MainDocumentPart mainPart = document.AddMainDocumentPart();
+
+            mainPart.Document = new Document();
+            Body body = mainPart.Document.AppendChild(new Body());
+
+            foreach (string line in lines)
+            {
+                Paragraph paragraph = body.AppendChild(new Paragraph());
+                Run run = paragraph.AppendChild(new Run());
+                run.AppendChild(new Text(line));
+            }
+
+            mainPart.Document.Save();
+        }
+
+        byte[] documentBytes = memoryStream.ToArray();
+
+        await JS.InvokeVoidAsync(
+            "downloadFile",
+            "BalanceSheet.docx",
+            documentBytes);
+    }
+    private void HandleFileUpload(InputFileChangeEventArgs e)
+    {
+        doc = new() { FileName = e.File.Name, UploadDate = DateTime.Now};
+    }
+}
