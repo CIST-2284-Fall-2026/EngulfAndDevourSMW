@@ -62,8 +62,10 @@
 </div>
 <div class="text-center">
     <button class="btn-primary" @onclick="DownloadBalanceSheet">Download Balance Sheet</button> <br /> <br /> <br />
-    <h2>Upload File: </h2> <br /> <br />
-    <InputFile OnChange="HandleFileUpload" accept=".docx" style="overflow: hidden;" /> <br />
+    <label class="btn btn-primary position-relative" for="csvImport">
+        Upload Balance Sheet
+        <InputFile OnChange="HandleFileUpload" accept=".docx" class="position-absolute top-0 start-0 w-100 h-100 opacity-0" />
+    </label> <br />
     @if (doc != null) 
     {
         <p>Uploaded Document: @doc.FileName</p>
