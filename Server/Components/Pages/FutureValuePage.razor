@@ -2,36 +2,16 @@
 
 @rendermode InteractiveServer
 
+@using Server.Components.SubComponents
+
 <PageTitle>Future Value Calculator</PageTitle>
 
 <h1 class="text-center">Future Value Calculator</h1>
-<!-- This is the form for calculating future value. It uses the FutureValue class as a model and calls HandleValidSubmit() when Submit is clicked and all validation is passed. Steps for dollar value inputs are 0.01. Validation prevents negative and zero values (not useful when calculating future value). Once data has been submitted, HandleValidSubmit() changes the contents of the message variable to show results. -->
-<EditForm FormName="FutureValueForm" Model="futureValue" OnValidSubmit="HandleValidSubmit">
-    <DataAnnotationsValidator />
-    <div class="mb-3">
-        <label class="form-label" for="Principal">Principal</label>
-        <InputNumber class="form-control" step="0.01" id="principle" @bind-value="futureValue.Principal" />
-        <ValidationMessage For="@(() => futureValue.Principal)" />
-    </div>
-    <div class="mb-3">
-        <label class="form-label" for="interestRate">Annual Interest Rate (Percent)</label>
-        <InputNumber class="form-control" step="0.01" id="interestRate" @bind-value="futureValue.InterestRate" />
-        <ValidationMessage For="@(() => futureValue.InterestRate)" />
-    </div>
-    <div class="mb-3">
-        <label class="form-label" for="years">Number of Years</label>
-        <InputNumber class="form-control" step="1" id="years" @bind-value="futureValue.Years" />
-        <ValidationMessage For="@(() => futureValue.Years)" />
-    </div>
-    <div class="mb-3">
-        <label class="form-label" for="compoundsPerYear">Number of Compounds Per Year</label>
-        <InputNumber class="form-control" step="0.01" id="compoundsPerYear" @bind-value="futureValue.CompoundsPerYear" />
-        <ValidationMessage For="@(() => futureValue.CompoundsPerYear)" />
-    </div>
-    <button type="submit" class="btn btn-primary">Submit</button>
-</EditForm>
 
-<p class="text-center">@message</p>
+@* The editForm has been moved to the FutureValueInputs component with a parameter "FutureValue" and a callback "OnValidSubmit" *@
+<FutureValueInputs FutureValue="@futureValue" OnValidSubmit="HandleValidSubmit" />
+@* The results have been moved to the FutureValueResults component with a parameter "Message" *@
+<FutureValueResults Message="@message" />
 
 @code {
     // Future Value object to hold data and do calculations

@@ -1,0 +1,41 @@
+@* This component displays the input form for future value calculations *@
+
+@* This is the form for calculating future value. It uses the FutureValue class as a model and calls HandleValidSubmit() when Submit is clicked and all validation is passed. Steps for dollar value inputs are 0.01. Validation prevents negative and zero values (not useful when calculating future value). Once data has been submitted, HandleValidSubmit() changes the contents of the message variable to show results. *@ 
+<EditForm FormName="FutureValueForm" Model="futureValue" OnValidSubmit="HandleValidSubmit">
+    <DataAnnotationsValidator />
+    <div class="mb-3">
+        <label class="form-label" for="Principal">Principal</label>
+        <InputNumber class="form-control" step="0.01" id="principle" @bind-value="futureValue.Principal" />
+        <ValidationMessage For="@(() => futureValue.Principal)" />
+    </div>
+    <div class="mb-3">
+        <label class="form-label" for="interestRate">Annual Interest Rate (Percent)</label>
+        <InputNumber class="form-control" step="0.01" id="interestRate" @bind-value="futureValue.InterestRate" />
+        <ValidationMessage For="@(() => futureValue.InterestRate)" />
+    </div>
+    <div class="mb-3">
+        <label class="form-label" for="years">Number of Years</label>
+        <InputNumber class="form-control" step="1" id="years" @bind-value="futureValue.Years" />
+        <ValidationMessage For="@(() => futureValue.Years)" />
+    </div>
+    <div class="mb-3">
+        <label class="form-label" for="compoundsPerYear">Number of Compounds Per Year</label>
+        <InputNumber class="form-control" step="0.01" id="compoundsPerYear" @bind-value="futureValue.CompoundsPerYear" />
+        <ValidationMessage For="@(() => futureValue.CompoundsPerYear)" />
+    </div>
+    <button type="submit" class="btn btn-primary">Submit</button>
+</EditForm>
+
+@code {
+    // The futureValue object is passed in by the parent
+    [Parameter]
+    public FutureValue futureValue { get; set; } = new();
+    // The callback is how the parent gets the information back after the form is submitted
+    [Parameter]
+    public EventCallback OnValidSubmit { get; set; }
+    // When the user submits the form, the event callback invokes a method in the parent. The callback doesn't need to return the object as it was passed by reference
+    private async Task HandleValidSubmit()
+    {
+        await OnValidSubmit.InvokeAsync();
+    }
+}

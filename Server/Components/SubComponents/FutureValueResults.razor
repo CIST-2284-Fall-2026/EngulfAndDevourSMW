@@ -1,0 +1,8 @@
+@* Displays the Message that is passed in by the parent component *@
+
+<p class="text-center">@Message</p>
+
+@code {
+    [Parameter]
+    public string Message { get; set; } = string.Empty;
+}
