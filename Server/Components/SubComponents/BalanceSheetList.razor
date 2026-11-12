@@ -1,0 +1,153 @@
+@using Common.Interfaces
+@inject IBalanceSheetService BalanceSheetService
+
+@* This component builds the balance sheet from assets, liabilites, and total equity. Parent passes in balance sheet object and equity. *@
+
+@* Container for assets, liabilities, and total equity *@
+<div class="container">
+    @* First row contains assets and liabilities *@
+    <div class="row">
+        @* Assets column - "col-md-6" = on medium screens assets and liabilities will be side by side, all text in here will be centered *@
+        <div class="col-md-6 text-center">
+            <h3>Assets</h3>
+            @* Unordered List - "list-unstyled" = no bullet points *@
+            <ul class="list-unstyled">
+                @* Lists each Asset with a delete button next to it *@
+                @foreach (LineItem item in BalanceSheet.Assets)
+                {
+                    <li>@item.Name - $@item.Amount <button class="btn btn-danger btn-sm ms-3" @onclick="() => DeleteAsset(item)">Delete</button></li>
+                }
+                @* Displays the calculated total for assets *@
+                <li>Total: $@BalanceSheetService.CalculateTotalAssets(BalanceSheet.Assets)</li>
+                @* If delete is clicked, asks the user if they're sure below the list of assets. *@
+                @if (deleteAsset)
+                    {
+                        <li>
+                            <p>Are you sure?</p> 
+                            <button class="btn btn-danger btn-sm" @onclick="ConfirmDelete">Yes</button>
+                            <button class="btn btn-secondary btn-sm" @onclick="CancelDelete">No</button>
+                        </li>
+                    }
+                @* Button to add an asset. *@
+                <li>
+                    <button class="btn btn-primary btn-sm" @onclick="NewAsset">New Asset</button>
+                </li>
+            </ul>
+        </div>
+        @* Liabilities column - "col-md-6" = on medium screens assets and liabilities will be side by side, all text in here will be centered *@
+        <div class="col-md-6 text-center">
+            <h3>Liabilities</h3>
+            @* Unordered List - "list-unstyled" = no bullet points *@
+            <ul class="list-unstyled">
+                @* Lists each Liability with a delete button next to it *@
+                @foreach (LineItem item in BalanceSheet.Liabilities)
+                {
+                    <li>@item.Name - $@item.Amount <button class="btn btn-danger btn-sm ms-3" @onclick="() => DeleteLiability(item)">Delete</button></li>
+                }
+                @* Displays the calculated total for liabilities *@
+                <li>Total: $@BalanceSheetService.CalculateTotalLiabilities(BalanceSheet.Liabilities)</li>
+                @* If delete is clicked, asks the user if they're sure below the list of liabilities. *@
+                @if (deleteLiability)
+                    {
+                        <li>
+                            <p>Are you sure?</p>
+                            <button class="btn btn-danger btn-sm" @onclick="ConfirmDelete">Yes</button>
+                            <button class="btn btn-secondary btn-sm" @onclick="CancelDelete">No</button>
+                        </li>
+                    }
+                @* Button to add a liability. *@
+                <li>
+                    <button class="btn btn-primary btn-sm" @onclick="NewLiability">New Liability</button>
+                </li>
+            </ul>
+        </div>
+    </div>
+    @* Row containing total Equity - spans the whole screen ("col-md-12") beneath assets and liabilities *@
+    <div class="row">
+        <div class="col-md-12 text-center">
+            <h3>Total Equity</h3>
+            <p>$@Equity</p>
+        </div>
+    </div>
+</div>
+
+@code {
+    // BalanceSheet object is provided by the parent
+    [Parameter]
+    public BalanceSheet BalanceSheet { get; set; } = new();
+    // Equity value is provided by the parent
+    [Parameter]
+    public decimal Equity { get; set; }
+    // Event callback that calls a parent method with a line item object to delete (asset)
+    [Parameter]
+    public EventCallback<LineItem> OnDeleteAsset { get; set; }
+    // Event callback that calls a parent method with a line item object to delete (liability)
+    [Parameter]
+    public EventCallback<LineItem> OnDeleteLiability { get; set; }
+    // Event callback that calls a parent method to add a new asset
+    [Parameter]
+    public EventCallback OnAddAsset { get; set; }
+    // Event callback that calls a parent method to add a new liability
+    [Parameter]
+    public EventCallback OnAddLiability { get; set; }
+    // LineItems storing asset or liability to be deleted
+    private LineItem assetToDelete = new();
+    private LineItem liabilityToDelete = new();
+    // Bools to track if an asset or a liability is marked for deletion
+    private bool deleteAsset = false;
+    private bool deleteLiability = false;
+    // Called when the user clicks delete asset - sets delete asset to true, delete liability to false, and assigns the asset to delete
+    private void DeleteAsset(LineItem asset)
+    {
+        deleteLiability = false;
+        deleteAsset = true;
+        assetToDelete = asset;
+    }
+    // Called when the user clicks delete liability - sets delete asset to false, delete liability to true, and assigns the liability to delete
+    private void DeleteLiability(LineItem liability)
+    {
+        deleteAsset = false;
+        deleteLiability = true;
+        liabilityToDelete = liability;
+    }
+    // If the user confirms delete of a line item, checks if it's an asset or liability, then invokes the parent method to delete that asset. Resets boolean and model values
+    private async Task ConfirmDelete()
+    {
+        if (deleteAsset)
+        {
+            await OnDeleteAsset.InvokeAsync(assetToDelete);
+            deleteAsset = false;
+            assetToDelete = new();
+        }
+        else if (deleteLiability)
+        {
+            await OnDeleteLiability.InvokeAsync(liabilityToDelete);
+            deleteLiability = false;
+            liabilityToDelete = new();
+        }        
+    }
+    // If the user cancels deletion, just resets boolean and model object
+    private void CancelDelete()
+    {
+        if (deleteAsset)
+        {
+            deleteAsset = false;
+            assetToDelete = new();
+        }
+        else if (deleteLiability)
+        {
+            deleteLiability = false;
+            liabilityToDelete = new();
+        }
+    }
+    // If the user clicks new asset, invokes the parent method for creating a new asset
+    private async Task NewAsset()
+    {
+        await OnAddAsset.InvokeAsync();
+    }
+    // If the user clicks new asset, invokes the parent method for creating a new liability
+    private async Task NewLiability()
+    {
+        await OnAddLiability.InvokeAsync();
+    }
+}

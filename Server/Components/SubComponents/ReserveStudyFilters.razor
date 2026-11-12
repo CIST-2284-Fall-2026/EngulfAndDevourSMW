@@ -1,0 +1,39 @@
+@* I wasn't exactly sure what was meant by ReserveStudyFilters, but I took it to mean displaying the number of units and the study horizon, as well as the editform for the number of units. *@
+
+@* The study horizon is a fixed value, so it cannot be edited *@
+<h4 class="text-center">Study Horizon: @ReserveStudy.StudyHorizon Years</h4>
+@* Displaying number of units the HOA oversees, with a button to change the number. *@
+<p class="text-center mb-3">Number of Units: @Study.NumUnits <button class="btn btn-primary btn-sm ms-3" @onclick="ChangeNumUnits">Edit</button></p>
+@* If the user is changing the number of units, displays a form tied to the research study object with an input for number of units *@
+@if (changeNumUnits)
+{
+    <div class="container col-md-4">
+        <EditForm model="Study" OnValidSubmit="HandleValidSubmitUnits">
+            <label for="numUnits">Number of Units:</label>
+            <InputNumber class="form-control" @bind-value="Study.NumUnits"></InputNumber>
+            <button type="submit" class="btn btn-primary">Submit</button>
+        </EditForm>
+    </div>
+}
+
+@code {
+    // Study is passed in from the parent
+    [Parameter]
+    public ReserveStudy Study { get; set; } = new();
+    // Event callback calls the associated parent method
+    [Parameter]
+    public EventCallback OnValidSubmit { get; set; }
+    // Bool tracking if the user wants to edit the number of units
+    private bool changeNumUnits = false;
+    // Called if the user clicks edit
+    private void ChangeNumUnits()
+    {
+        changeNumUnits = true;
+    }
+    // Called if the user clicks submit on the editform, resets the bool and invokes the parent method to change nubmer of units
+    private async Task HandleValidSubmitUnits()
+    {
+        changeNumUnits = false;
+        await OnValidSubmit.InvokeAsync();
+    }
+}

@@ -8,6 +8,9 @@ window.createExpenditureChart = (values) => {
     // Setting the element context to the ctx variable
     const ctx = document.getElementById('expenditureChart');
 
+    // If the context doesn't exist, stops making the chart
+    if (!ctx) return;
+
     // Creating a new chart (using the chart.js CDN)
     // The first parameter is the context. The second is an object containing chart properties
     expenditureChart = new Chart(ctx, {
@@ -47,8 +50,11 @@ window.updateExpenditureChart = (values) => {
 
 // Function to destroy an existing chart
 window.destroyExpenditureChart = () => {
-    if (expenditureChart) {
-        expenditureChart.destroy();
-        expenditureChart = null;
+    const chart = Chart.getChart('expenditureChart');
+
+    if (chart) {
+        chart.destroy();
     }
+
+    expenditureChart = null;
 };

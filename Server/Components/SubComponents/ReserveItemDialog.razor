@@ -1,0 +1,28 @@
+@* This compontent contains the editform to add a new component to the reserve study. It is passed a newComponent model from the parent *@
+
+<EditForm model="newComponent" OnValidSubmit="HandleValidSubmitComponent">
+    <DataAnnotationsValidator />
+    <ValidationSummary />
+    <label for="name">Name:</label>
+    <InputText class="form-control" @bind-value="newComponent.Name"></InputText>
+    <label for="amount">Useful Years:</label>
+    <InputNumber class="form-control" @bind-value="newComponent.UsefulLife"></InputNumber>
+    <label for="amount">Replacement Cost:</label>
+    <InputNumber class="form-control" @bind-value="newComponent.ReplacementCost"></InputNumber>
+    <button type="submit" class="btn btn-primary">Submit</button>
+</EditForm>
+
+@code {
+    // newComponent is received from the parent
+    [Parameter]
+    public RSComponent newComponent { get; set; } = new();
+    // Event callback calls the associated parent method
+    [Parameter]
+    public EventCallback<RSComponent> OnValidSubmit { get; set; }
+    // When the form is submitted, newComponent is reset and the parent method is invoked
+    private async Task HandleValidSubmitComponent()
+    {
+        await OnValidSubmit.InvokeAsync(newComponent);
+        newComponent = new();
+    }
+}

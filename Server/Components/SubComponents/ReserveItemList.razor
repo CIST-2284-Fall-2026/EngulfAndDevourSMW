@@ -1,0 +1,91 @@
+@using Common.Interfaces
+@using Server.Components.Account.Pages
+@inject IReserveStudyService RS
+
+@* This component displays the list of components in the reserve study, as well as come calculated values. The reserve study is passed in by the parent *@
+
+@* Container for components and calculated totals *@
+<div class="container text-center">
+    <div class="row">
+        @* Components list *@
+        <h3>Components:</h3>
+        <ul class="list-unstyled">
+            @* If there are no components yet, shows this message *@
+            @if (Study.Components.Count == 0)
+            {
+                <li>No Components Yet - Click Add Component or Import a .csv File</li>
+            }
+            else
+            {
+                @* Displays each component and its data, with a delete button next to it *@
+                @foreach (RSComponent component in Study.Components)
+                {
+                    <li>
+                        @component.Name - Useful Life: @component.UsefulLife Years - Replacement Cost: $@component.ReplacementCost
+                        <button class="btn btn-danger btn-s ms-3" @onclick="() => DeleteComponent(component)">Delete</button>  
+                    </li>
+                }
+                @* If delete is clicked next to a component, these buttons are shown below the list to ask for confirmation *@
+                @if (deleteComponent)
+                    {
+                        <li>
+                            <p>Are you sure?</p>
+                            <button class="btn btn-danger btn-sm" @onclick="ConfirmDelete">Yes</button>
+                            <button class="btn btn-secondary btn-sm" @onclick="CancelDelete">No</button>
+                        </li>
+                    }
+                <br />
+                @* Displaying total expenditures and HOA fee reccomendations *@
+                <li><h4>Totals:</h4></li>
+                <li>
+                    Total Projected Expenditures over a period of @ReserveStudy.StudyHorizon Years: $@RS.GetTotalExpenditures(RS.GetAnnualExpenditures(Study.Components)).ToString("F2")
+                </li>
+                <li>
+                    Recommended HOA Fee Per Unit: $@RS.GetMonthlyHOAFeePerUnit(RS.GetTotalExpenditures(RS.GetAnnualExpenditures(Study.Components)), Study.NumUnits).ToString("F2")
+                </li>    
+            }
+        </ul>
+    </div>
+    @* Button to add a new component *@
+    <button class="btn btn-primary btn-sm mb-3" @onclick="AddComponent">Add Component</button>
+</div>
+
+@code {
+    // Study is provided by the parent component
+    [Parameter]
+    public ReserveStudy Study { get; set; } = new();
+    // Event callback if the user deletes a component
+    [Parameter]
+    public EventCallback<RSComponent> OnDeleteComponent { get; set; }
+    // Event callback to add a component
+    [Parameter]
+    public EventCallback OnAddComponent { get; set; }
+    // Model representing a component to delete
+    private RSComponent componentToDelete = new();
+    // Bool tracking if a component is marked for deletion
+    private bool deleteComponent = false;
+    // Called when the user clicks delete, sets the bool to true and assigns the component to componentToDelete
+    private void DeleteComponent(RSComponent component)
+    {
+        deleteComponent = true;
+        componentToDelete = component;
+    }
+    // Called when the user confirms deletion - resets the bool and model, then invokes the delete parent method
+    private async Task ConfirmDelete()
+    {
+        deleteComponent = false;
+        await OnDeleteComponent.InvokeAsync(componentToDelete);
+        componentToDelete = new();
+    }
+    // Called if the user cancels deletion, resets the bool and model
+    private void CancelDelete()
+    {
+        deleteComponent = false;
+        componentToDelete = new();
+    }
+    // Called if the user clicks add component, invokes the parent method to add a component
+    private async Task AddComponent()
+    {
+        await OnAddComponent.InvokeAsync();
+    }
+}

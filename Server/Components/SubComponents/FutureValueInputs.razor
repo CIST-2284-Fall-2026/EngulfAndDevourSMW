@@ -1,7 +1,7 @@
 @* This component displays the input form for future value calculations *@
 
 @* This is the form for calculating future value. It uses the FutureValue class as a model and calls HandleValidSubmit() when Submit is clicked and all validation is passed. Steps for dollar value inputs are 0.01. Validation prevents negative and zero values (not useful when calculating future value). Once data has been submitted, HandleValidSubmit() changes the contents of the message variable to show results. *@ 
-<EditForm FormName="FutureValueForm" Model="futureValue" OnValidSubmit="HandleValidSubmit">
+<EditForm FormName="FutureValueForm" Model="futureValue" OnValidSubmit="HandleValidSubmitForm">
     <DataAnnotationsValidator />
     <div class="mb-3">
         <label class="form-label" for="Principal">Principal</label>
@@ -34,7 +34,7 @@
     [Parameter]
     public EventCallback OnValidSubmit { get; set; }
     // When the user submits the form, the event callback invokes a method in the parent. The callback doesn't need to return the object as it was passed by reference
-    private async Task HandleValidSubmit()
+    private async Task HandleValidSubmitForm()
     {
         await OnValidSubmit.InvokeAsync();
     }

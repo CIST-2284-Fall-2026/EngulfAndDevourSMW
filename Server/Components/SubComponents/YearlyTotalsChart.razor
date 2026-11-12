@@ -1,0 +1,50 @@
+@using Common.Interfaces
+@inject IReserveStudyService RS
+@inject IJSRuntime JS
+
+@* This component displays the yearly totals chart for the reserve study. The reserve study object is passed in by the parent. *@
+
+@* If there are components in the list, the canvas is created *@
+    @if (Study.Components.Count > 0)
+    {
+        <div style="width: 100%; max-width: 800px; height: 400px; margin: auto;">
+            <canvas id="expenditureChart"></canvas>
+        </div>
+    }
+
+@code {
+    // The study is passed in by the parent
+    [Parameter]
+    public ReserveStudy Study { get; set; } = new();
+    // List of annual expenditures
+    private List<decimal> annualExpenditures = new();
+    // Bool tracking if the chart needs an update
+    private bool chartNeedsUpdate = false;
+    // When parameters are passed by the parent, annual expenditures are calculated and chartNeedsUpdate is set to true
+    protected override void OnParametersSet()
+    {
+        annualExpenditures = RS.GetAnnualExpenditures(Study.Components);    
+        chartNeedsUpdate = true;    
+    }
+    // After the page renders, checks if the chart needs to be updated
+    // The javascript functions for this were provided by ChatGPT. They are broken down in the relevant files
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (chartNeedsUpdate)
+        {
+            // boolean is flipped to false
+            chartNeedsUpdate = false;
+            // If there are no components in the study, the old chart is destroyed (if it exists), since the canvas won't be created
+            if (Study.Components.Count == 0)
+            {
+                await JS.InvokeVoidAsync("destroyExpenditureChart"); // function provided by ChatGPT
+            }
+            // Otherwise, the old chart is destroyed (if it exists) and a new chart is drawn
+            else
+            {
+                await JS.InvokeVoidAsync("destroyExpenditureChart"); // function provided by ChatGPT
+                await JS.InvokeVoidAsync("createExpenditureChart", annualExpenditures); // function provided by ChatGPT
+            }
+        }
+    }
+}

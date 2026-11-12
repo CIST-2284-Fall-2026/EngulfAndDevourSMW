@@ -1,0 +1,34 @@
+@* This component displays the editform for adding an asset or liability to the balance sheet. It uses LineItem as a model. *@
+
+<EditForm model="LineItem" OnValidSubmit="HandleValidSubmit">
+    <DataAnnotationsValidator />
+    <ValidationSummary />
+    <label for="name">Name:</label>
+    <InputText class="form-control" @bind-value="LineItem.Name"></InputText>
+    <label for="amount">Amount:</label>
+    <InputNumber class="form-control" @bind-value="LineItem.Amount"></InputNumber>
+    <button type="submit" class="btn btn-primary">Submit</button>
+    <button type="button" class="btn btn-primary" @onclick="CancelSubmission">Cancel</button>
+</EditForm>
+
+@code {
+    // LineItem parameter gets the asset or liability from the parent
+    [Parameter]
+    public LineItem LineItem { get; set; } = new();
+    // Event callback OnValidSubmit calls the parent method to add the new line item (asset or liability)
+    [Parameter]
+    public EventCallback OnValidSubmit { get; set; }
+    // Event callback OnCancel calls the parent method to cancel adding a new line item
+    [Parameter]
+    public EventCallback OnCancel { get; set; }
+    // Invokes the OnValidSubmit callback method
+    private async Task HandleValidSubmit()
+    {
+        await OnValidSubmit.InvokeAsync();
+    }
+    // Invokes the OnCancel callback method
+    private async Task CancelSubmission()
+    {
+        await OnCancel.InvokeAsync();
+    }
+}
