@@ -18,4 +18,6 @@ ReserveItemList.razor - This displays the list of components in the reserve stud
   
 ReserveItemDialog.razor - This displays an edit form to add a new component to the list of components. The model component is passed in by the parent. There is an event callback that is tied to a parent method to add a new component.  
   
-YearlyTotalsChart.razor - This displays the line graph tracking annual expenses. The study is passed in as a parameter from the parent. There is no event callback as no data is sent back to the parent. Whenever parameters are set, annual expenditures are calculated and a redraw of the chart is triggered. No chart is displayed if there are no items in the components list. Note: The assignment labels the the MonthlyTotalsChart, but the previous assignment had us doing annual expenditures, not monthly, so I will stick with that.
+YearlyTotalsChart.razor - This displays the line graph tracking annual expenses. The study is passed in as a parameter from the parent. There is no event callback as no data is sent back to the parent. Whenever parameters are set, annual expenditures are calculated and a redraw of the chart is triggered. No chart is displayed if there are no items in the components list. Note: The assignment labels the the MonthlyTotalsChart, but the previous assignment had us doing annual expenditures, not monthly, so I will stick with that.  
+  
+AI Usage: ChatGPT was used in the debugging process and to help with ideation. It did not contribute meaningfully to the code itself, but it did save me time debugging.
