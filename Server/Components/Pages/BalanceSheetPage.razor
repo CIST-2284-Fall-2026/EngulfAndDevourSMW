@@ -58,6 +58,7 @@
 @code {
     // Various model objects to store data
     private BalanceSheet balanceSheet = new BalanceSheet();
+    // These models are initialized with ID and category assigned, since the form doesn't provide that data
     private LineItem newAsset = new()
     {
         Id = Guid.NewGuid(),
@@ -76,7 +77,8 @@
     private bool newLiabilityForm = false;
     // DateTime object for the document upload
     private DateTime date = DateTime.Today;
-    // Calculates equity after initialization (currently zero, may be different later with databases)
+    // Gets the list of line items from the database and separates them into assets and liabilities on initialization
+    // Also calculates equity after initialization (currently zero, may be different later with databases)
     protected override async Task OnInitializedAsync()
     {
         var lineItems = await BalanceSheetService.GetAllAsync();
@@ -84,14 +86,14 @@
         balanceSheet.Liabilities = lineItems.Where(i => i.Category == BalanceSheetCategory.Liability).ToList();
         equity = BalanceSheetService.CalculateEquity(BalanceSheetService.CalculateTotalAssets(balanceSheet.Assets), BalanceSheetService.CalculateTotalLiabilities(balanceSheet.Liabilities));
     }
-    // Called by an event callback - deletes an asset from the list of assets, then recalculates equity
+    // Called by an event callback - deletes an asset from the database and list of assets, then recalculates equity
     private async Task ConfirmDeleteAsset(LineItem asset)
     {
         await BalanceSheetService.DeleteAsync(asset);
         balanceSheet.Assets.Remove(asset);
         equity = BalanceSheetService.CalculateEquity(BalanceSheetService.CalculateTotalAssets(balanceSheet.Assets), BalanceSheetService.CalculateTotalLiabilities(balanceSheet.Liabilities));
     }
-    // Called by an event callback - deletes a liability from the list of liabilities, then recalculates equity
+    // Called by an event callback - deletes a liability from the database and list of liabilities, then recalculates equity
     private async Task ConfirmDeleteLiability(LineItem liability)
     {
         await BalanceSheetService.DeleteAsync(liability);
@@ -112,7 +114,7 @@
     // Called when the user submits a new asset or liability
     private async Task HandleValidSubmit()
     {
-        // Adds the new asset or liability, resets models and booleans, recalculates total equity
+        // Adds the new asset or liability to the database and balance sheet, resets models and booleans, recalculates total equity
         if (newAssetForm)
         {
             newAssetForm = false;

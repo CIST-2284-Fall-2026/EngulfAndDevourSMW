@@ -44,21 +44,32 @@ namespace Common.Services
         {
             return liabilities.Sum(l => l.Amount);
         }
+        /// <summary>
+        /// Calls the GetAllAsync method on the injected DAL
+        /// </summary>
         public Task<List<LineItem>> GetAllAsync()
         {
             return lineItemsDAL.GetAllAsync();
         }
-
+        /// <summary>
+        /// Calls the AddAsync method on the injected DAL
+        /// </summary>
+        /// <param name="item">Item to be added to the database</param>
         public Task AddAsync(LineItem item)
         {
             return lineItemsDAL.AddAsync(item);
         }
-
+        /// <summary>
+        /// Calls the DeleteAsync method on the injected DAL
+        /// </summary>
+        /// <param name="item">Item to be deleted from the database</param>
         public Task DeleteAsync(LineItem item)
         {
             return lineItemsDAL.DeleteAsync(item);
         }
-
+        /// <summary>
+        /// Calls the DeleteAllAsync method on the injected DAL
+        /// </summary>
         public Task DeleteAllAsync()
         {
             return lineItemsDAL.DeleteAllAsync();

@@ -4,6 +4,7 @@ namespace Common.Interfaces
 {
     /// <summary>
     /// Interface for the balance sheet service. Contains methods for calcualting total assets, liabilities, and equity
+    /// Also contains methods for database calls, utilized with an injected DAL
     /// </summary>
     public interface IBalanceSheetService
     {

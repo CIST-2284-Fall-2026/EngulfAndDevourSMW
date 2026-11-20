@@ -10,7 +10,30 @@
     <p>Email: swalker62@student.cnm.edu</p>
 </div>
 
-<h3>P3 README:</h3>
+<h3>Database Update README:</h3>
+
+<div>
+    <p>
+        This update is a refactor to add database persistence. That means that changes to the balance sheet assets/liabilities and reserve study components list will persist between sessions. This consisted of the following changes:  
+    </p>
+    <p>
+        Added two interfaces - ILineItemsDAL.cs and IRSComponentsDAL.cs. These define certain database access methods. They are implemented by LineItemsDAL and RSComponentsDAL, which in turn are injected into the Balance Sheet and Reserve Study services. These two services now have add/delete/get methods which call the corresponding methods from the DALs. The interfaces for BalanceSheetService.cs and ReserveStudyService.cs have been updated to require the added methods as well. I ended up with this architecture because I initially was injecting DBContext into the pages themselves, then I saw the assignment said all data access must go through a service layer. I consulted ChatGPT and decided the best solution was to inject the DBContext into the service.  
+    </p>
+    <p>
+        Nothing has changed in how this application is run and there are no new features. Simply navigate to the page you desire in the side menu and click buttons to add items or import/export files. Note that importing a .docx into the balance sheet page simply records the filename and a timestamp, as instructed when designing the page. Importing a .csv file into the reserve study page resets the list of components to those listed in the file. This is persisted in the database.  
+    </p>
+    <p>
+        The database file is located in Server/Data/app.db, alongside the Migration history, ApplicationDbContext, and ApplicationUser.cs.  
+    </p>
+    <p>
+        The migration commands used are the same ones we used in the initial tutorial - dotnet ef migrations add AddLineItemsTable was the command used to create that table, with LineItem class as the model. The same was done for the ReserveStudyComponents table. dotnet ef database update pushed the tables into the database.  
+    </p>
+    <p>
+        AI Usage - ChatGPT was used sparingly for ideation, then helped with debugging. Toward the end when I realized I wasn't supposed be accessing DbContext directly on the page, I had ChatGPT help me decide how to put that behind a service without rewriting too much code. All code was written by me, though some of the code for injecting the DALs into the services was suggested by ChatGPT. It also suggested that I use an enum to track whether a line item is an asset or a liability.
+    </p>
+</div>
+
+<h3>Components Update README:</h3>
 
 <div>
     <p>
@@ -54,7 +77,7 @@
     </p>
 </div>
 
-<h3>P2 README:</h3>
+<h3>Balance Sheet/Reserve Study Update README:</h3>
 
 <div>
     <p>

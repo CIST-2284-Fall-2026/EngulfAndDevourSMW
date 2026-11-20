@@ -37,10 +37,14 @@
         Import .csv File
         <InputFile OnChange="ImportComponents" accept=".csv" class="position-absolute top-0 start-0 w-100 h-100 opacity-0" />
     </label>
+    @if (!string.IsNullOrEmpty(importMessage))
+    {
+        <p>@importMessage</p>
+    }
 </div>
 
 @code {
-    // Model objects to store data
+    // Model objects to store data - newComponent gets a GUID on initialization
     private ReserveStudy study = new();
     private RSComponent newComponent = new()
     {
@@ -48,7 +52,9 @@
     };
     // Boolean to track state
     private bool addNewComponent = false;
-
+    // Message to inform the user if their file import was successful
+    private string importMessage = "";
+    // Gets the list of components from the database on initialization
     protected override async Task OnInitializedAsync()
     {
         study.Components = await RS.GetAllAsync();
@@ -58,13 +64,13 @@
     {
         addNewComponent = true;
     }
-    // Called via event callback, deletes a component from the component list
+    // Called via event callback, deletes a component from the component list and database
     private async Task ConfirmDelete(RSComponent component)
     {
         await RS.DeleteAsync(component);
         study.Components.Remove(component);
     }
-    // Called via event callback, adds a new component, then resets model and bool
+    // Called via event callback, adds a new component to the database and component list, then resets model and bool
     private async Task HandleValidSubmitComponent()
     {
         await RS.AddAsync(newComponent);
@@ -80,9 +86,12 @@
     {
     }    
     // Called when the user clicks import .csv file - this function was provided by ChatGPT, although the comments are my own
+    // In this implementation, when a user imports a .csv file, the list of components is reset to match the list in the .csv file, resetting the database table and the local list of components
     private async Task ImportComponents(InputFileChangeEventArgs e)
     {
+        // Stores the imported components while reading the file
         List<RSComponent> importedComponents = new();
+        bool invalidFile = false;
         // e.File represents the file selected in the file import
         var file = e.File;
         // Opens the file and provides a stream of the contents (max size 1000000 bytes)
@@ -92,9 +101,6 @@
         // Creating a string to store lines and a boolean to check if it's the first line
         string? line;
         bool firstLine = true;
-        // Resetting the components list so the file represents its own study and doesn't simply add to the existing list
-        await RS.DeleteAllAsync();
-        study.Components = new();
 
         // While the next line is not null...
         while ((line = await reader.ReadLineAsync()) != null)
@@ -120,13 +126,28 @@
                 };
                 importedComponents.Add(component);
             }
+            else
+            {
+                invalidFile = true;
+            }
         }
-        await RS.DeleteAllAsync();
-        foreach (RSComponent component in importedComponents)
+        // If the file was in the proper format and contained components, deletes the current table in the database, then adds the new components
+        if (!invalidFile && importedComponents.Count > 0)
         {
-            await RS.AddAsync(component);
+            await RS.DeleteAllAsync();
+            foreach (RSComponent component in importedComponents)
+            {
+                await RS.AddAsync(component);
+            }
+            // Setting the components list to the contents of importedComponents and updating the message
+            study.Components = importedComponents;
+            importMessage = "Successfully Imported .csv File.";
         }
-        study.Components = importedComponents;
+        // If the file was in the improper format or contained no components, the message is updated
+        else
+        {
+            importMessage = "Invalid file format. No changes were made.";
+        }
     }
     // Called when the user clicks export to .csv
     private async Task ExportToCSV()

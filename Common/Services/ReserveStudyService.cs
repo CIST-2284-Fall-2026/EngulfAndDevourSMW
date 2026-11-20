@@ -8,6 +8,9 @@ namespace Common.Services
     /// </summary>
     public class ReserveStudyService : IReserveStudyService
     {
+        /// <summary>
+        /// Injecting the DAL for reserve study components, used for database calls
+        /// </summary>
         private readonly IRSComponentsDAL rsComponentsDAL;
 
         public ReserveStudyService(IRSComponentsDAL rsComponentsDAL)
@@ -60,21 +63,34 @@ namespace Common.Services
         {
             return totals.Sum();
         }
+        /// <summary>
+        /// Calls the GetAllAsync method from the injected DAL
+        /// </summary>
         public Task<List<RSComponent>> GetAllAsync()
         {
             return rsComponentsDAL.GetAllAsync();
         }
-
+        /// <summary>
+        /// Calls the AddAsync method from the injected DAL
+        /// </summary>
+        /// <param name="component">Component to be added to the database</param>
         public Task AddAsync(RSComponent component)
         {
             return rsComponentsDAL.AddAsync(component);
         }
-
+        /// <summary>
+        /// Calls the DeleteAsync method from the injected DAL
+        /// </summary>
+        /// <param name="component">Component to be deleted from the database</param>
+        /// <returns></returns>
         public Task DeleteAsync(RSComponent component)
         {
             return rsComponentsDAL.DeleteAsync(component);
         }
-
+        /// <summary>
+        /// Calls the DeleteAllAsync method from the injected DAL
+        /// </summary>
+        /// <returns></returns>
         public Task DeleteAllAsync()
         {
             return rsComponentsDAL.DeleteAllAsync();

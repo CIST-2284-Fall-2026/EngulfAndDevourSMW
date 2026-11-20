@@ -20,6 +20,9 @@ namespace Common.Models
         /// </summary>
         [Required]
         public Guid Id { get; set; }
+        /// <summary>
+        /// Category to store whether it's a liability or asset
+        /// </summary>
         [Required]
         public BalanceSheetCategory Category { get; set; }
         /// <summary>
