@@ -7,4 +7,5 @@ namespace Server.Data;
 public class ApplicationDbContext(DbContextOptions<ApplicationDbContext> options) : IdentityDbContext<ApplicationUser>(options)
 {
     public DbSet<LineItem> LineItems { get; set; }
+    public DbSet<RSComponent> ReserveStudyComponents { get; set; }
 }

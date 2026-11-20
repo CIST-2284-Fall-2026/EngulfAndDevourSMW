@@ -39,6 +39,28 @@ namespace Server.Migrations
                     b.ToTable("LineItems");
                 });
 
+            modelBuilder.Entity("Common.Models.RSComponent", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("TEXT");
+
+                    b.Property<decimal>("ReplacementCost")
+                        .HasColumnType("TEXT");
+
+                    b.Property<int>("UsefulLife")
+                        .HasColumnType("INTEGER");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("ReserveStudyComponents");
+                });
+
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityRole", b =>
                 {
                     b.Property<string>("Id")
