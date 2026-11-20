@@ -1,15 +1,16 @@
 @page "/balance-sheet"
+@using System.IO
 @using Common.Interfaces
 @using Common.Models
 @using DocumentFormat.OpenXml
 @using DocumentFormat.OpenXml.Packaging
 @using DocumentFormat.OpenXml.Wordprocessing
-@using System.IO
 @using Server.Components.SubComponents
 
 @* Dependency Injection - IJSRuntime is used for file download, BalanceSheetService handles balance sheet calculations *@
 @inject IJSRuntime JS
 @inject IBalanceSheetService BalanceSheetService
+
 @rendermode InteractiveServer
 
 @* This is the title you see on the tab in browser *@
@@ -76,19 +77,24 @@
     // DateTime object for the document upload
     private DateTime date = DateTime.Today;
     // Calculates equity after initialization (currently zero, may be different later with databases)
-    protected override void OnInitialized()
+    protected override async Task OnInitializedAsync()
     {
+        var lineItems = await BalanceSheetService.GetAllAsync();
+        balanceSheet.Assets = lineItems.Where(i => i.Category == BalanceSheetCategory.Asset).ToList();
+        balanceSheet.Liabilities = lineItems.Where(i => i.Category == BalanceSheetCategory.Liability).ToList();
         equity = BalanceSheetService.CalculateEquity(BalanceSheetService.CalculateTotalAssets(balanceSheet.Assets), BalanceSheetService.CalculateTotalLiabilities(balanceSheet.Liabilities));
     }
     // Called by an event callback - deletes an asset from the list of assets, then recalculates equity
-    private void ConfirmDeleteAsset(LineItem asset)
+    private async Task ConfirmDeleteAsset(LineItem asset)
     {
+        await BalanceSheetService.DeleteAsync(asset);
         balanceSheet.Assets.Remove(asset);
         equity = BalanceSheetService.CalculateEquity(BalanceSheetService.CalculateTotalAssets(balanceSheet.Assets), BalanceSheetService.CalculateTotalLiabilities(balanceSheet.Liabilities));
     }
     // Called by an event callback - deletes a liability from the list of liabilities, then recalculates equity
-    private void ConfirmDeleteLiability(LineItem liability)
+    private async Task ConfirmDeleteLiability(LineItem liability)
     {
+        await BalanceSheetService.DeleteAsync(liability);
         balanceSheet.Liabilities.Remove(liability);
         equity = BalanceSheetService.CalculateEquity(BalanceSheetService.CalculateTotalAssets(balanceSheet.Assets), BalanceSheetService.CalculateTotalLiabilities(balanceSheet.Liabilities));
     }
@@ -104,12 +110,13 @@
         newLiabilityForm = true;
     }
     // Called when the user submits a new asset or liability
-    private void HandleValidSubmit()
+    private async Task HandleValidSubmit()
     {
         // Adds the new asset or liability, resets models and booleans, recalculates total equity
         if (newAssetForm)
         {
             newAssetForm = false;
+            await BalanceSheetService.AddAsync(newAsset);
             balanceSheet.Assets.Add(newAsset);
             newAsset = new()
             {
@@ -121,6 +128,7 @@
         else if (newLiabilityForm)
         {
             newLiabilityForm = false;
+            await BalanceSheetService.AddAsync(newLiability);
             balanceSheet.Liabilities.Add(newLiability);
             newLiability = new()
             {

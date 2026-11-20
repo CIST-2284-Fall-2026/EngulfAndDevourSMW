@@ -6,6 +6,7 @@ using Microsoft.EntityFrameworkCore;
 using Server.Components;
 using Server.Components.Account;
 using Server.Data;
+using Server.Data.DALs;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -43,6 +44,8 @@ builder.Services.AddIdentityCore<ApplicationUser>(options =>
 builder.Services.AddSingleton<IEmailSender<ApplicationUser>, IdentityNoOpEmailSender>();
 builder.Services.AddTransient<IReserveStudyService, ReserveStudyService>();
 builder.Services.AddTransient<IBalanceSheetService, BalanceSheetService>();
+builder.Services.AddTransient<ILineItemsDAL, LineItemsDAL>();
+builder.Services.AddTransient<IRSComponentsDAL, RSComponentsDAL>();
 
 var app = builder.Build();
 

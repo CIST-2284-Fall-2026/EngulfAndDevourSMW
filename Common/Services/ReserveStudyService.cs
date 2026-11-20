@@ -8,6 +8,12 @@ namespace Common.Services
     /// </summary>
     public class ReserveStudyService : IReserveStudyService
     {
+        private readonly IRSComponentsDAL rsComponentsDAL;
+
+        public ReserveStudyService(IRSComponentsDAL rsComponentsDAL)
+        {
+            this.rsComponentsDAL = rsComponentsDAL;
+        }
         /// <summary>
         /// Calculates annual expenditures for the length of the reserve study.
         /// </summary>
@@ -53,6 +59,25 @@ namespace Common.Services
         public decimal GetTotalExpenditures(List<decimal> totals)
         {
             return totals.Sum();
+        }
+        public Task<List<RSComponent>> GetAllAsync()
+        {
+            return rsComponentsDAL.GetAllAsync();
+        }
+
+        public Task AddAsync(RSComponent component)
+        {
+            return rsComponentsDAL.AddAsync(component);
+        }
+
+        public Task DeleteAsync(RSComponent component)
+        {
+            return rsComponentsDAL.DeleteAsync(component);
+        }
+
+        public Task DeleteAllAsync()
+        {
+            return rsComponentsDAL.DeleteAllAsync();
         }
     }
 }

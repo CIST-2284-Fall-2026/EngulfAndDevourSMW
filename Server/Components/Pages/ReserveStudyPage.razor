@@ -48,19 +48,26 @@
     };
     // Boolean to track state
     private bool addNewComponent = false;
+
+    protected override async Task OnInitializedAsync()
+    {
+        study.Components = await RS.GetAllAsync();
+    }
     // Called when add component is clicked - boolean is flipped
     private void AddComponent()
     {
         addNewComponent = true;
     }
     // Called via event callback, deletes a component from the component list
-    private void ConfirmDelete(RSComponent component)
+    private async Task ConfirmDelete(RSComponent component)
     {
+        await RS.DeleteAsync(component);
         study.Components.Remove(component);
     }
     // Called via event callback, adds a new component, then resets model and bool
-    private void HandleValidSubmitComponent()
+    private async Task HandleValidSubmitComponent()
     {
+        await RS.AddAsync(newComponent);
         study.Components.Add(newComponent);
         newComponent = new()
         {
@@ -75,6 +82,7 @@
     // Called when the user clicks import .csv file - this function was provided by ChatGPT, although the comments are my own
     private async Task ImportComponents(InputFileChangeEventArgs e)
     {
+        List<RSComponent> importedComponents = new();
         // e.File represents the file selected in the file import
         var file = e.File;
         // Opens the file and provides a stream of the contents (max size 1000000 bytes)
@@ -85,6 +93,7 @@
         string? line;
         bool firstLine = true;
         // Resetting the components list so the file represents its own study and doesn't simply add to the existing list
+        await RS.DeleteAllAsync();
         study.Components = new();
 
         // While the next line is not null...
@@ -109,9 +118,15 @@
                     UsefulLife = usefulLife,
                     ReplacementCost = replacementCost
                 };
-                study.Components.Add(component);
+                importedComponents.Add(component);
             }
         }
+        await RS.DeleteAllAsync();
+        foreach (RSComponent component in importedComponents)
+        {
+            await RS.AddAsync(component);
+        }
+        study.Components = importedComponents;
     }
     // Called when the user clicks export to .csv
     private async Task ExportToCSV()

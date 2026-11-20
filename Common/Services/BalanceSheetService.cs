@@ -9,6 +9,14 @@ namespace Common.Services
     public class BalanceSheetService : IBalanceSheetService
     {
         /// <summary>
+        /// Injecting the line items DAL here for database operations
+        /// </summary>
+        private readonly ILineItemsDAL lineItemsDAL;
+        public BalanceSheetService(ILineItemsDAL lineItemsDAL)
+        {
+            this.lineItemsDAL = lineItemsDAL;
+        }
+        /// <summary>
         /// Calculates the total equity of the balance sheet using total assets and total liabilities.
         /// </summary>
         /// <param name="totalAssets">Decimal value of total assets.</param>
@@ -35,6 +43,25 @@ namespace Common.Services
         public decimal CalculateTotalLiabilities(List<LineItem> liabilities)
         {
             return liabilities.Sum(l => l.Amount);
+        }
+        public Task<List<LineItem>> GetAllAsync()
+        {
+            return lineItemsDAL.GetAllAsync();
+        }
+
+        public Task AddAsync(LineItem item)
+        {
+            return lineItemsDAL.AddAsync(item);
+        }
+
+        public Task DeleteAsync(LineItem item)
+        {
+            return lineItemsDAL.DeleteAsync(item);
+        }
+
+        public Task DeleteAllAsync()
+        {
+            return lineItemsDAL.DeleteAllAsync();
         }
     }
 }

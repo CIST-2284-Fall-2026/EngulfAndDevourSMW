@@ -11,5 +11,9 @@ namespace Common.Interfaces
         List<decimal> GetAnnualExpenditures(List<RSComponent> components);
         decimal GetTotalExpenditures(List<decimal> totals);
         decimal GetMonthlyHOAFeePerUnit(decimal totalExpenditures, int numUnits);
+        Task<List<RSComponent>> GetAllAsync();
+        Task AddAsync(RSComponent component);
+        Task DeleteAsync(RSComponent component);
+        Task DeleteAllAsync();
     }
 }
