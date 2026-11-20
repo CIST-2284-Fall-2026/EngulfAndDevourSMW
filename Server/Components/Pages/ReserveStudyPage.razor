@@ -42,7 +42,10 @@
 @code {
     // Model objects to store data
     private ReserveStudy study = new();
-    private RSComponent newComponent = new();
+    private RSComponent newComponent = new()
+    {
+        Id = Guid.NewGuid()
+    };
     // Boolean to track state
     private bool addNewComponent = false;
     // Called when add component is clicked - boolean is flipped
@@ -59,7 +62,10 @@
     private void HandleValidSubmitComponent()
     {
         study.Components.Add(newComponent);
-        newComponent = new();
+        newComponent = new()
+        {
+            Id = Guid.NewGuid()
+        };
         addNewComponent = false;
     }
     // Called via event callback. Does nothing but trigger a render so the page values update when number of units is changed

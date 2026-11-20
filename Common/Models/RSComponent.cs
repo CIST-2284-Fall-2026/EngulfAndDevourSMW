@@ -8,6 +8,11 @@ namespace Common.Models
     public class RSComponent
     {
         /// <summary>
+        /// Id field, used as primary key in database tables
+        /// </summary>
+        [Required]
+        public Guid Id { get; set; }
+        /// <summary>
         /// String representing the name of the component, must be 5-100 characters long
         /// </summary>
         [Required]

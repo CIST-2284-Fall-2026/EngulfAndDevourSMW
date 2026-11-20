@@ -3,10 +3,25 @@ using System.ComponentModel.DataAnnotations;
 namespace Common.Models
 {
     /// <summary>
+    /// This enum represents whether the line item is an asset or liability
+    /// </summary>
+    public enum BalanceSheetCategory
+    {
+        Asset,
+        Liability
+    }
+    /// <summary>
     /// Class representing a line item on a balance sheet
     /// </summary>
     public class LineItem
     {
+        /// <summary>
+        /// Unique ID acts as a primary key in the database tables
+        /// </summary>
+        [Required]
+        public Guid Id { get; set; }
+        [Required]
+        public BalanceSheetCategory Category { get; set; }
         /// <summary>
         /// A string representing the name of the line item. Must be between 5 and 100 characters long.
         /// </summary>

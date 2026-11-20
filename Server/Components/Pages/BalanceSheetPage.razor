@@ -57,8 +57,16 @@
 @code {
     // Various model objects to store data
     private BalanceSheet balanceSheet = new BalanceSheet();
-    private LineItem newAsset = new();
-    private LineItem newLiability = new();
+    private LineItem newAsset = new()
+    {
+        Id = Guid.NewGuid(),
+        Category = BalanceSheetCategory.Asset
+    };
+    private LineItem newLiability = new()
+    {
+        Id = Guid.NewGuid(),
+        Category = BalanceSheetCategory.Liability
+    };
     private UploadedDocument? doc;
     // Variable to store total equity
     private decimal equity = 0;
@@ -103,14 +111,22 @@
         {
             newAssetForm = false;
             balanceSheet.Assets.Add(newAsset);
-            newAsset = new();
+            newAsset = new()
+            {
+                Id = Guid.NewGuid(),
+                Category = BalanceSheetCategory.Asset
+            };
             equity = BalanceSheetService.CalculateEquity(BalanceSheetService.CalculateTotalAssets(balanceSheet.Assets), BalanceSheetService.CalculateTotalLiabilities(balanceSheet.Liabilities));
         }
         else if (newLiabilityForm)
         {
             newLiabilityForm = false;
             balanceSheet.Liabilities.Add(newLiability);
-            newLiability = new();
+            newLiability = new()
+            {
+                Id = Guid.NewGuid(),
+                Category = BalanceSheetCategory.Liability
+            };
             equity = BalanceSheetService.CalculateEquity(BalanceSheetService.CalculateTotalAssets(balanceSheet.Assets), BalanceSheetService.CalculateTotalLiabilities(balanceSheet.Liabilities));
         }
     }
@@ -119,8 +135,16 @@
     {
         newAssetForm = false;
         newLiabilityForm = false;
-        newAsset = new();
-        newLiability = new();
+        newAsset = new()
+        {
+            Id = Guid.NewGuid(),
+            Category = BalanceSheetCategory.Asset
+        };
+        newLiability = new()
+        {
+            Id = Guid.NewGuid(),
+            Category = BalanceSheetCategory.Liability
+        };
     }
     // Called when user clicks Download Balance Sheet
     private async Task DownloadBalanceSheet()
